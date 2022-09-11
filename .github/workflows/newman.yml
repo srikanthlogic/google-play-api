@@ -10,6 +10,11 @@ jobs:
   newman:
     runs-on: ubuntu-latest
     steps:
+      - name: Check out repository code and Install
+        uses: actions/checkout@v3
+      - run: npm install
+      - run: npm start
+      - name: Run Newman
       - uses: actions/checkout@master
       - uses: matt-ball/newman-action@master
         with:
