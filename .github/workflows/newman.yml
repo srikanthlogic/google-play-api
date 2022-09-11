@@ -1,0 +1,17 @@
+name: Newman Run
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  newman:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - uses: matt-ball/newman-action@master
+        with:
+          collection: PostmanCollections/GooglePlayAPI.postman_collection.json
+          environment: PostmanCollections/postman_environment.json
