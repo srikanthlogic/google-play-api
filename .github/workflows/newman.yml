@@ -13,7 +13,7 @@ jobs:
       - name: Check out repository code and Install
         uses: actions/checkout@v3
       - run: npm install
-      - run: npm start
+      - run: npm start & npx wait-on https://localhost:3000
       - name: Run Newman
         uses: matt-ball/newman-action@master
         with:
