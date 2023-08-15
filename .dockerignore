@@ -6,6 +6,5 @@ Dockerfile
 fly.toml
 .gitpod.yml
 .gitignore
-PostmanCollections
 .eslintrc
 newman
