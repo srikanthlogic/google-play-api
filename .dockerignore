@@ -8,3 +8,4 @@ fly.toml
 .gitignore
 .eslintrc
 newman
+openapi/options.json
