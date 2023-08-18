@@ -637,7 +637,7 @@
 							"variable": [
 								{
 									"key": "appId",
-									"value": "{{APP_ID}}"
+									"value": "org.wikipedia"
 								}
 							]
 						},
@@ -1828,37 +1828,37 @@
 	],
 	"variable": [
 		{
-			"id": "8f643eb2-88f5-4ee1-9193-e04cd0dc3f4d",
+			"id": "dd854a48-6c4a-4db8-ac7a-e116387305ff",
 			"key": "APP_ID",
 			"value": "org.wikipedia"
 		},
 		{
-			"id": "8bd69569-4900-4061-8dde-66f129a53456",
+			"id": "a517fb48-9dd4-43c6-942f-ea7a5ee850c7",
 			"key": "DEV_ID",
 			"value": "Wikimedia Foundation"
 		},
 		{
-			"id": "7377d4f9-5dbc-473b-a2aa-8d9f6e765a6c",
+			"id": "31e04d41-f3c4-41cc-b68c-7c607e2acc4b",
 			"key": "COUNTRY_CODE",
 			"value": "IN"
 		},
 		{
-			"id": "ced5f9b3-673f-4585-8eb5-056077ea1f15",
+			"id": "2c6e28c8-29a8-489d-b243-a92e154df43b",
 			"key": "LANGUAGE_CODE",
 			"value": "en"
 		},
 		{
-			"id": "8208486e-4de9-44b9-89a4-0b08f0751c81",
+			"id": "fd25b9c5-65f5-44fb-b734-8f6a0aa5ea4e",
 			"key": "expectedResponseTime",
 			"value": 20
 		},
 		{
-			"id": "8f013eb0-1bb2-4c09-873d-a2a2adfbd33a",
+			"id": "23324ddd-1a43-498e-9e48-95c97b4accb1",
 			"key": "expectedResponseStatusCode",
 			"value": 200
 		},
 		{
-			"id": "cdfb9551-a454-4207-a00a-9bd51e52151d",
+			"id": "6037bec4-4676-48fb-89c8-f4f2d1a0c38f",
 			"key": "HOST",
 			"value": "gplayapi.cashlessconsumer.in",
 			"type": "string"
