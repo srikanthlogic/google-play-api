@@ -15,19 +15,14 @@
             "url": "https://en.wikipedia.org/wiki/MIT_License"
         },
         "title": "Google Play Metadata API",
-        "version": "0.2.1",
+        "version": "0.3.6",
         "xLogo": {
             "altText": "CashlessConsumer logo",
             "backgroundColor": "#FFFFFF",
-            "url": "https://www.cashlessconsumer.in/static/img/favicon.png"
+            "url": "./assets/icon.png"
         }
     },
     "operationId": "auto",
     "outputFormat": "json",
-    "servers": [
-        {
-            "description": "Google Play Metadata API ",
-            "url": "https://gplayapi.cashlessconsumer.in/"
-        }
-    ]
+    "servers": []
 }
