@@ -1,5 +1,6 @@
 ---
-title: "GPlayAPI"
+app_name: "GPlayAPI"
+title: "Google Play API"
 tagline: "Your own personal API to get app metadata from Google Play"
 theme_color: "#f26daa"
 git: "https://github.com/srikanthlogic/google-play-api/"
