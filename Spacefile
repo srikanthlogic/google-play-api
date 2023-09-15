@@ -1,0 +1,10 @@
+v: 0
+micros:
+  - name: nodejs-app
+    src: .
+    engine: nodejs16
+    primary: true
+    commands:
+      - npm run generateoas
+    run: node server.js
+    dev: node server.js
