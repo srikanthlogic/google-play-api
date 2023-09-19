@@ -8,3 +8,5 @@ fly.toml
 .gitignore
 .eslintrc
 newman
+Spacefile
+assets
