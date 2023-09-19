@@ -3,7 +3,7 @@ name: CI/CD Pipeline
 on:
   workflow_dispatch:
   push:
-    branches: ["main"]
+    branches: ["main", "dev"]
     paths: ["!PostmanCollections/**", "!./github/**"]
 
 jobs:
@@ -38,14 +38,14 @@ jobs:
 
       - name: Run Tests
         run: npm test
-      
+
       - name: Upload HTML Report
         uses: actions/upload-artifact@v2
         with:
           name: html-report
           path: newman/*.html
 
-
+          
   build_and_push_docker_image:
     needs: build_and_test
     runs-on: ubuntu-latest
@@ -71,8 +71,10 @@ jobs:
       - name: Build and Push Docker Image
         run: |
           docker buildx create --use
-          docker buildx build --platform linux/amd64 -t ghcr.io/${{ github.repository }}:latest --push .
-          docker buildx build --platform linux/amd64 -t ghcr.io/${{ github.repository }}:main --push .
+          docker buildx build --platform linux/amd64 -t ghcr.io/${{ github.repository }}:dev --push .
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            docker buildx build --platform linux/amd64 -t ghcr.io/${{ github.repository }}:main --push .
+          fi
           docker buildx stop
 
   deploy_to_fly:
@@ -86,17 +88,28 @@ jobs:
       - name: Get FlyCtl
         uses: superfly/flyctl-actions/setup-flyctl@master
 
+      - name: Determine File Based on Branch
+        id: determine-env
+        run: |
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            cp fly.production.toml fly.toml
+            echo "DEPLOY_TARGET=Fly" >> $GITHUB_ENV
+          else
+            cp fly.staging.toml fly.toml            
+            echo "DEPLOY_TARGET=FlyDev" >> $GITHUB_ENV
+          fi
+
+
       - name: start deployment
         uses: bobheadxi/deployments@v1
         id: deployment
         with:
           step: start
           token: ${{ secrets.GITHUB_TOKEN }}
-          env: Fly
+          env: ${{ env.DEPLOY_TARGET }}
 
       - name: Deploy to Fly
-        run: |
-          flyctl deploy --remote-only
+        run: flyctl deploy
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
 

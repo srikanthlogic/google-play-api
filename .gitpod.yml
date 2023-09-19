@@ -16,5 +16,5 @@ ports:
       onOpen: open-preview
       name: Google Play API
       description: Website Preview
-      visibility: private
+      visibility: public
       protocol: https
