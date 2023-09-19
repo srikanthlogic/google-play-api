@@ -3,7 +3,8 @@ npm-debug.log
 Dockerfile
 .dockerignore
 .github
-fly.toml
+fly.production.toml
+fly.staging.toml
 .gitpod.yml
 .gitignore
 .eslintrc
