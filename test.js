@@ -1,11 +1,18 @@
 import newman from 'newman';
 import collectionData from './PostmanCollections/GooglePlayAPI.postman_collection.json' assert { type: "json" };
+import utCollectionData from './PostmanCollections/GPlayAPIUnitTests.postman_collection' assert { type: "json" };
 import environmentData from './PostmanCollections/postman_environment.json' assert { type: "json" };
 
 const runTests = async () => {
   try {
     await newman.run({
       collection: collectionData,
+      environment: environmentData,
+      reporters: ['cli', 'htmlextra']
+    });
+
+    await newman.run({
+      collection: utCollectionData,
       environment: environmentData,
       reporters: ['cli', 'htmlextra']
     });
