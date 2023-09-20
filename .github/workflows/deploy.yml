@@ -1,10 +1,12 @@
-name: CI/CD Pipeline
+name: Deploy Pipeline
 
 on:
   workflow_dispatch:
   push:
     branches: ["main", "dev"]
     paths: ["!PostmanCollections/**", "!./github/**"]
+  pull_request:
+    branches: [ "dev" ]
 
 jobs:
   build_and_test:
