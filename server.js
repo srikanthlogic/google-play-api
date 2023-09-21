@@ -5,13 +5,14 @@ import router from './lib/index.js';
 import swaggerDocument from './openapi/swagger.json' assert { type: "json" };
 import swaggerUi from 'swagger-ui-express';
 
-
 const app = Express();
 const port = process.env.PORT || 3000;
 
 var options = {
   customCss: '.swagger-ui .topbar { display: none }'
 };
+
+app.use('/openapi.json', Express.static('openapi/swagger.json'));
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument, options));
 app.use('/api/', router);
