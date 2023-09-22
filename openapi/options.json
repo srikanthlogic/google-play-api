@@ -15,9 +15,9 @@
             "url": "https://en.wikipedia.org/wiki/MIT_License"
         },
         "title": "Google Play Metadata API",
-        "version": "0.3.6",
+        "version": "1.5.0",
         "xLogo": {
-            "altText": "CashlessConsumer logo",
+            "altText": "Google Play API logo",
             "backgroundColor": "#FFFFFF",
             "url": "./assets/icon.png"
         }
