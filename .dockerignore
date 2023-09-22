@@ -10,4 +10,4 @@ fly.staging.toml
 .eslintrc
 newman
 Spacefile
-assets
+Discovery.md

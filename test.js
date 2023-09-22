@@ -5,13 +5,13 @@ import environmentData from './PostmanCollections/postman_environment.json' asse
 
 const runTests = async () => {
   try {
-    await newman.run({
+    newman.run({
       collection: collectionData,
       environment: environmentData,
       reporters: ['cli', 'htmlextra']
     });
 
-    await newman.run({
+    newman.run({
       collection: utCollectionData,
       environment: environmentData,
       reporters: ['cli', 'htmlextra']

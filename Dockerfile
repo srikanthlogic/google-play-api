@@ -3,7 +3,7 @@ FROM node:16-alpine
 
 # Set metadata labels
 LABEL maintainer="Srikanth <srikanth@cashlessconsumer.in>" \
-      version="1.0" \
+      version="1.5.0" \
       description="Docker image for running Google Play API"
 
 # Create and set the working directory
@@ -12,7 +12,7 @@ WORKDIR /home/node/app
 # Copy only the package.json and package-lock.json first to leverage Docker caching
 COPY package*.json ./
 
-RUN npm install -g npm@9.8.1
+RUN npm install -g npm@10.1.0
 
 # Install dependencies
 RUN npm ci --quiet --omit=dev
