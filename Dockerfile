@@ -1,5 +1,5 @@
 # Use the official Node.js image as base
-FROM node:16-alpine
+FROM node:18-alpine
 
 # Set metadata labels
 LABEL maintainer="Srikanth <srikanth@cashlessconsumer.in>" \
