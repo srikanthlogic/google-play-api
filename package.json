@@ -20,7 +20,8 @@
     "google-play-scraper": "^10.0.0",
     "npm-check-updates": "^16.14.4",
     "postman-to-openapi": "^3.0.1",
-    "swagger-ui-express": "^5.0.0"
+    "swagger-ui-express": "^5.0.0",
+    "openapi-to-graphql": "^2.2.2"
   },
   "devDependencies": {
     "eslint": "^8.49.0",
