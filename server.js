@@ -13,6 +13,11 @@ var options = {
   customCss: '.swagger-ui .topbar { display: none }'
 };
 
+app.use('/openapi.json', Express.static('openapi/swagger.json'));
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument, options));
+app.use('/api/', router);
+
 if (process.env.LOGGING || false) {
   console.log('Logging is enabled');
   app.use(morgan('combined'));

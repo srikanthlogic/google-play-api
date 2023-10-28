@@ -22,4 +22,5 @@ primary_region = "sin"
   processes = ["app"]
 
 [env]
+  COUNTRY_OF_QUERY = "IN"
   LOGGING = true
