@@ -9,3 +9,8 @@ micros:
       - npm run generateoas
     run: node server.js
     dev: node server.js
+    presets:
+      env:
+        - name: COUNTRY_ENV_VARIABLE
+          description: Country parameter to be defaulted for all requests
+          default: "US"
