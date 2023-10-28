@@ -11,6 +11,6 @@ micros:
     dev: node server.js
     presets:
       env:
-        - name: COUNTRY_ENV_VARIABLE
+        - name: COUNTRY_OF_QUERY
           description: Country parameter to be defaulted for all requests
           default: "US"
