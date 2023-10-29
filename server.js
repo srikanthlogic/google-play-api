@@ -4,6 +4,7 @@ import Express from 'express';
 import router from './lib/index.js';
 import swaggerDocument from './openapi/swagger.json' assert { type: "json" };
 import swaggerUi from 'swagger-ui-express';
+import setupGraphQL from './lib/graphql.js';
 
 const app = Express();
 const port = process.env.PORT || 3000;
@@ -13,6 +14,8 @@ var options = {
 };
 
 app.use('/openapi.json', Express.static('openapi/swagger.json'));
+
+setupGraphQL(app);
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument, options));
 app.use('/api/', router);
