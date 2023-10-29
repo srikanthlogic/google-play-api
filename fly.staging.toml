@@ -20,3 +20,7 @@ primary_region = "sin"
   auto_start_machines = true
   min_machines_running = 0
   processes = ["app"]
+
+[env]
+  COUNTRY_OF_QUERY = "IN"
+  LOGGING = true
