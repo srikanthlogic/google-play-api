@@ -14,3 +14,6 @@ micros:
         - name: COUNTRY_OF_QUERY
           description: Country parameter to be defaulted for all requests
           default: "US"
+        - name: LOGGING
+          description: Sets LOGGING
+          default: "false"
