@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository code and Install
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - run: npm install
       - run: npm run generateoas
       - run: npm start & npx wait-on http://localhost:3000
