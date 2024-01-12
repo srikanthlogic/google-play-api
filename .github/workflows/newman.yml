@@ -12,8 +12,13 @@ jobs:
   newman:
     runs-on: ubuntu-latest
     steps:
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
       - name: Check out repository code and Install
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - run: npm install
       - run: npm run generateoas
       - run: npm start & npx wait-on http://localhost:3000

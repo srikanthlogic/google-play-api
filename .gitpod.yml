@@ -6,7 +6,11 @@
 
 tasks:
   - name: Setup and Install
-    before: npm install
+    before: |
+        nvm install 18
+        nvm use 18
+        npm install
+        source .env.sample
     init: npm run generateoas
     command: npm run start
 
