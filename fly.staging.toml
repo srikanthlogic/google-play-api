@@ -25,6 +25,11 @@ primary_region = "sin"
     soft_limit = 200
     hard_limit = 250
 
+  [[services.ports]]
+    handlers = ["http"]
+    port = 80
+    force_https = true  # optional
+
 
 [env]
   COUNTRY_OF_QUERY = "IN"
