@@ -42,7 +42,7 @@ jobs:
         run: npm test
 
       - name: Upload HTML Report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4.1.0
         with:
           name: html-report
           path: newman/*.html
