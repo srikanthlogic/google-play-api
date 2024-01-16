@@ -8,10 +8,6 @@ primary_region = "sin"
 [build]
   image = "ghcr.io/srikanthlogic/google-play-api:main"
 
-[services]
-  [services.http]
-    ports = ["http"]
-
 [http_service]
   protocol = "tcp"
   internal_port = 3000
@@ -20,15 +16,11 @@ primary_region = "sin"
   auto_start_machines = true
   min_machines_running = 0
   processes = ["app"]
-  [http_service.concurrency]
-    type = "requests"
-    soft_limit = 200
-    hard_limit = 250
 
-[[services.ports]]
-  handlers = ["http"]
-  port = 80
-  force_https = true  # optional
+[http_service.concurrency]
+  type = "requests"
+  soft_limit = 200
+  hard_limit = 250
 
 [env]
   COUNTRY_OF_QUERY = "IN"
