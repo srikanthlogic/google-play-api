@@ -2,7 +2,7 @@
 	"info": {
 		"_postman_id": "6c81de84-6e95-48af-8f67-2c9d993a6162",
 		"name": "Google Play API",
-		"description": "## About\n\n- Google Play API turns [google-play-scraper](https://github.com/facundoolano/google-play-scraper/), a Google Play scraper written in javascript into a RESTful API. Google Play Scraper can be get broken as and when Google updates its Google Play pages, hence Google Play API can be broken at times too. This is not an official API from Google.\n    \n- To run locally via docker\n    \n    - `docker pull ghcr.io/srikanthlogic/google-play-api:main`\n        \n- `gplayapi.cashlessconsumer.in`is free hosted instance of this API run by [Srikanth L](https://www.srik.me/) without any guarantee on up-time.\n    \n- Status Page - [https://cashlessconsumer.statuspage.io/](https://cashlessconsumer.statuspage.io/)",
+		"description": "## About\n\n- Google Play API turns [google-play-scraper](https://github.com/facundoolano/google-play-scraper/), a Google Play scraper written in javascript into a RESTful API. Google Play Scraper can be get broken as and when Google updates its Google Play pages, hence Google Play API can be broken at times too. This is not an official API from Google.\n- To run locally via docker\n    - `docker pull ghcr.io/srikanthlogic/google-play-api:main`\n- `gplayapi.cashlessconsumer.in`is free hosted instance of this API run by [Srikanth L](https://www.srik.me/) without any guarantee on up-time.\n- Status Page - [https://cashlessconsumer.statuspage.io/](https://cashlessconsumer.statuspage.io/)",
 		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json"
 	},
 	"item": [
@@ -2002,6 +2002,124 @@
 				}
 			],
 			"id": "ae6a66f2-fc4b-4924-990a-159b75bb6392"
+		},
+		{
+			"name": "Collections",
+			"item": [
+				{
+					"name": "Get Collections",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "64b7d63a-d2ee-4843-b97b-8bbf55a19d7f",
+								"exec": [
+									"pm.test('Response is an array', function () {",
+									"    pm.expect(pm.response.json()).to.be.an('array');",
+									"})",
+									"",
+									"pm.test('Response array contains at least one element', function () {",
+									"    const responseData = pm.response.json();",
+									"    pm.expect(responseData).to.be.an('array').and.to.have.lengthOf.at.least(1);",
+									"})",
+									"",
+									"pm.test('Each element in the response array is a non-empty string', function () {",
+									"    const responseData = pm.response.json();",
+									"    pm.expect(responseData).to.be.an('array');",
+									"    responseData.forEach(function (element) {",
+									"        pm.expect(element).to.be.a('string').and.to.have.lengthOf.at.least(1, 'Value should not be empty');",
+									"    });",
+									"})",
+									"",
+									"pm.test(\"Number of Collections to be greaterThan 2\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.length).is.greaterThan(2);",
+									"});",
+									"pm.test(\"Check if TOP_FREE Collection exists\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.include('TOP_FREE')",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"id": "48274eed-2818-418c-93d4-d10587efc149",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{HOST}}/api/collections",
+						"description": "This endpoint makes an HTTP GET request to retrieve a list of collections. The request does not contain a request body.\n\n### Response\n\n- Status: 200\n- The response will contain an array of strings representing different collections.\n    \n\n#### Example\n\n``` json\n[\n    \"TOP_FREE\",\n    \"TOP_PAID\",\n    \"GROSSING\"\n]\n\n ```"
+					},
+					"response": [
+						{
+							"id": "867726ae-d0bb-476d-bd66-07fed93a2efc",
+							"name": "Get Collections",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": "{{HOST}}/api/collections"
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "x-powered-by",
+									"value": "Express"
+								},
+								{
+									"key": "content-type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "content-encoding",
+									"value": "br"
+								},
+								{
+									"key": "etag",
+									"value": "W/\"22-WShgMLv3I7zpww008ySfVxHUL2w\""
+								},
+								{
+									"key": "date",
+									"value": "Wed, 17 Jan 2024 00:08:03 GMT"
+								},
+								{
+									"key": "connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "keep-alive",
+									"value": "timeout=5"
+								},
+								{
+									"key": "transfer-encoding",
+									"value": "chunked"
+								},
+								{
+									"key": "server",
+									"value": "Fly/f9c163a6 (2024-01-16)"
+								},
+								{
+									"key": "via",
+									"value": "1.1 fly.io"
+								},
+								{
+									"key": "fly-request-id",
+									"value": "01HMABY4DBDD1R2HB06BWWDM46-iad"
+								}
+							],
+							"cookie": [],
+							"responseTime": null,
+							"body": "[\n    \"TOP_FREE\",\n    \"TOP_PAID\",\n    \"GROSSING\"\n]"
+						}
+					]
+				}
+			],
+			"id": "f786904d-a3e1-44b6-b26f-5f53b47c2cb6"
 		}
 	],
 	"event": [
