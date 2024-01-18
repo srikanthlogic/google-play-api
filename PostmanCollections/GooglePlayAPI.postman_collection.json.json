@@ -637,7 +637,7 @@
 							"variable": [
 								{
 									"key": "appId",
-									"value": "org.wikipedia"
+									"value": "{{APP_ID}}"
 								}
 							]
 						},
