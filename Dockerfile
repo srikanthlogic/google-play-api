@@ -12,10 +12,10 @@ WORKDIR /home/node/app
 # Copy only the package.json and package-lock.json first to leverage Docker caching
 COPY package*.json ./
 
-RUN npm install -g npm@10.1.0
+RUN npm install -g npm@10.3.0
 
 # Install dependencies
-RUN npm ci --quiet --omit=dev
+RUN npm ci --quiet --omit=dev && npm cache clean --force
 
 # Copy the rest of the application code
 COPY . .
