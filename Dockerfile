@@ -1,5 +1,5 @@
 # Use the official Node.js image as base
-FROM node:18-alpine
+FROM node:18-alpine AS base
 
 # Set metadata labels
 LABEL maintainer="Srikanth <srikanth@cashlessconsumer.in>" \
@@ -7,20 +7,27 @@ LABEL maintainer="Srikanth <srikanth@cashlessconsumer.in>" \
       description="Docker image for running Google Play API"
 
 # Create and set the working directory
-WORKDIR /home/node/app
+WORKDIR /app
+
+FROM base as build
 
 # Copy only the package.json and package-lock.json first to leverage Docker caching
-COPY package*.json ./
+COPY --link package-lock.json package.json ./
 
 RUN npm install -g npm@10.3.0
 
 # Install dependencies
-RUN npm ci --quiet --omit=dev && npm cache clean --force
+RUN npm install
 
-# Copy the rest of the application code
-COPY . .
+COPY --link . .
 
 RUN npm run generateoas
+
+RUN npm prune
+
+FROM base
+# Copy the rest of the application code
+COPY --from=build /app /app
 
 # Expose port 3000
 EXPOSE 3000
