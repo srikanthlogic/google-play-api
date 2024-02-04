@@ -19,8 +19,8 @@ primary_region = "sin"
 
 [http_service.concurrency]
   type = "requests"
-  soft_limit = 400
-  hard_limit = 500
+  soft_limit = 800
+  hard_limit = 1000
 
 [env]
   COUNTRY_OF_QUERY = "IN"
