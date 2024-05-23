@@ -17,7 +17,7 @@
   },
   "dependencies": {
     "express": "^4.19.2",
-    "google-play-scraper": "^10.0.0",
+    "google-play-scraper": "https://github.com/srikanthlogic/google-play-scraper.git#c0bdceca9288165f9af625363c621b901f506390",
     "morgan": "^1.10.0",
     "postman-to-openapi": "^3.0.1",
     "swagger-ui-express": "^5.0.0"
