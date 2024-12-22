@@ -2,11 +2,8 @@
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
-app = "gplayapidev2"
+app = "gplayapidev"
 primary_region = "sin"
-
-[deploy]
-exclude-machines = "9080edea6460d8"
 
 [build]
   image = "ghcr.io/srikanthlogic/google-play-api:dev"
