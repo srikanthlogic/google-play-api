@@ -4,6 +4,7 @@
 
 app = "gplayapidev"
 primary_region = "sin"
+exclude-machines = "9080edea6460d8"
 
 [build]
   image = "ghcr.io/srikanthlogic/google-play-api:dev"
