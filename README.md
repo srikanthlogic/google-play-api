@@ -1,19 +1,19 @@
 # Google Play API
-![GitHub tag (latest SemVer pre-release)](https://img.shields.io/github/v/tag/srikanthlogic/google-play-api?include_prereleases&label=version) [![Newman Run](https://github.com/srikanthlogic/google-play-api/actions/workflows/newman.yml/badge.svg)](https://github.com/srikanthlogic/google-play-api/actions/workflows/newman.yml) [![API Documentation](https://img.shields.io/badge/api-documentation-brightgreen)](https://gplayapi.cashlessconsumer.in/) [![Deploy](https://button.deta.dev/1/svg)](https://deta.space/discovery/@cashlessconsumer/googleplayapi)
+![GitHub tag (latest SemVer pre-release)](https://img.shields.io/github/v/tag/srikanthlogic/google-play-api?include_prereleases&label=version) [![Newman Run](https://github.com/srikanthlogic/google-play-api/actions/workflows/newman.yml/badge.svg)](https://github.com/srikanthlogic/google-play-api/actions/workflows/newman.yml) [![API Documentation](https://img.shields.io/badge/api-documentation-brightgreen)](https://gplayapi.cashlessconsumer.in/)
 
 Google Play API is a REST API wrapper originally built on top of [google-play-scraper](https://github.com/facundoolano/google-play-scraper) by [Facundoolano](https://github.com/facundoolano) to fetch metadata from [Google Play](https://en.wikipedia.org/wiki/Google_Play). This repository extends it and adds additional endpoints.
 
 ## API Server
-The API Server is built on ExpressJS and self contains API documentation.
+The API Server is built on ExpressJS and includes self-contained API documentation.
 
-To run locally:
-* Clone the repository and run
-* `npm install`
-* `npm run generateoas` - Generates the OpenAPI specification
-* `npm start`
-
-### Deployments
-The API Server can be installed as a [Deta app](https://deta.space/discovery/@cashlessconsumer/googleplayapi).
+### To Run Locally:
+1. Clone the repository.
+2. Run the following commands:
+   ```bash
+   npm install
+   npm run generateoas # Generates the OpenAPI specification
+   npm start
+   ```
 
 ### Roadmap
 * [ ] Expose more endpoints helping towards archiving.
