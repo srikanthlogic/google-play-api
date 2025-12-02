@@ -1,7 +1,11 @@
 import newman from 'newman';
-import collectionData from './PostmanCollections/GooglePlayAPI.postman_collection.json' assert { type: "json" };
-import utCollectionData from './PostmanCollections/GPlayAPIUnitTests.postman_collection.json' assert { type: "json" };
-import environmentData from './PostmanCollections/postman_environment.json' assert { type: "json" };
+import fs from 'fs';
+import path from 'path';
+
+const collectionsPath = './PostmanCollections/';
+const collectionData = JSON.parse(fs.readFileSync(path.resolve(collectionsPath + 'GooglePlayAPI.postman_collection.json'), 'utf8'));
+const utCollectionData = JSON.parse(fs.readFileSync(path.resolve(collectionsPath + 'GPlayAPIUnitTests.postman_collection.json'), 'utf8'));
+const environmentData = JSON.parse(fs.readFileSync(path.resolve(collectionsPath + 'postman_environment.json'), 'utf8'));
 
 const runTests = async () => {
   try {
