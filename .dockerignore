@@ -5,9 +5,7 @@ Dockerfile
 .github
 fly.production.toml
 fly.staging.toml
-.gitpod.yml
 .gitignore
 .eslintrc
 newman
-Spacefile
-Discovery.md
+.env.sample

@@ -1,9 +1,9 @@
 # Use the official Node.js image as base
-FROM node:18-alpine AS base
+FROM node:22-alpine AS base
 
 # Set metadata labels
 LABEL maintainer="Srikanth <srikanth@cashlessconsumer.in>" \
-      version="1.5.0" \
+      version="1.6.0" \
       description="Docker image for running Google Play API"
 
 # Create and set the working directory
@@ -14,7 +14,7 @@ FROM base as build
 # Copy only the package.json and package-lock.json first to leverage Docker caching
 COPY --link package-lock.json package.json ./
 
-RUN npm install -g npm@10.3.0
+RUN npm install -g npm@latest
 
 # Install dependencies
 RUN npm install
