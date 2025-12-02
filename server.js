@@ -13,7 +13,7 @@ const port = process.env.PORT || 3000;
 
 const corsOptions = {
   origin: '*',
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'],
+  methods: ['GET', 'HEAD', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
   optionsSuccessStatus: 204
 };
@@ -37,10 +37,10 @@ const limiter = rateLimit({
     res.set('Retry-After', retryAfterSeconds);
     res.status(429).json({
       error: {
-        message: `Too many requests from this IP (${maxRequests} requests per ${Math.round(windowMs / 60000)} minutes). Please try again after ${retryAfterSeconds} seconds.`,
-      },
+        message: `Too many requests from this IP (${maxRequests} requests per ${Math.round(windowMs / 60000)} minutes). Please try again after ${retryAfterSeconds} seconds.`
+      }
     });
-  },
+  }
 });
 app.use(limiter);
 
@@ -84,7 +84,7 @@ app.use((req, res, next) => {
   next(err);
 });
 
-app.use((err, req, res, next) => {
+app.use((err, req, res) => {
   console.error(err.stack);
   res.status(err.status || 500);
   res.json({
