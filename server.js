@@ -63,7 +63,7 @@ if (process.env.LOGGING || false) {
 
 const swaggerDocument = JSON.parse(fs.readFileSync('./openapi/swagger.json', 'utf8'));
 
-var options = {
+const options = {
   customCss: '.swagger-ui .topbar { display: none }'
 };
 
@@ -72,11 +72,9 @@ app.use('/openapi.json', Express.static('openapi/swagger.json'));
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument, options));
 app.use('/api/', router);
 
-
 app.get('/', function (req, res) {
   res.redirect('/api-docs');
 });
-
 
 app.use((req, res, next) => {
   const err = new Error('Not Found');
@@ -90,7 +88,7 @@ app.use((err, req, res, next) => {
   res.json({
     error: {
       message: err.message,
-      ...(process.env.NODE_ENV === 'development' ? {stack: err.stack} : {})
+      ...(process.env.NODE_ENV === 'development' ? { stack: err.stack } : {})
     }
   });
 });
