@@ -1,0 +1,29 @@
+meta {
+  name: Get App Details
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{HOST}}/api/apps/{{APP_ID}}/
+  body: none
+  auth: none
+}
+
+params:query {
+  ~lang: {{LANGUAGE_CODE}}
+  ~country: {{COUNTRY_CODE}}
+}
+
+vars:pre-request {
+  expectedResponseTime: 60
+  expectedResponseStatusCode: 200
+}
+
+tests {
+  const responseData = res.getBody();
+  
+  test("Check Wikipedia", function() {
+    expect(responseData.title).to.eql("Wikipedia");
+  });
+}

@@ -1,0 +1,59 @@
+meta {
+  name: Get App Permissions
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{HOST}}/api/apps/{{APP_ID}}/permissions
+  body: none
+  auth: none
+}
+
+params:query {
+  ~short: true
+  ~lang: {{LANGUAGE_CODE}}
+}
+
+tests {
+  const responseData = res.getBody();
+  
+  test("Check for read USB storage permission in any element", function() {
+    const permissions = "read the contents of your USB storage";
+    const results = responseData.results;
+    const includesPermission = results.some(result => result.permission.includes(permissions));
+    expect(includesPermission).to.be.true;
+  });
+  
+  test("Response has required fields - permission and type", function() {
+    expect(responseData.results).to.exist.and.to.be.an('array');
+    expect(responseData.results.length).to.be.above(0, "Results array should not be empty");
+    responseData.results.forEach(function(result) {
+      expect(result.permission).to.exist.and.to.be.a('string');
+      expect(result.type).to.exist.and.to.be.a('string');
+    });
+  });
+  
+  test("Validate the 'results' array is present and contains the expected number of elements", function() {
+    expect(responseData.results).to.exist.and.to.be.an('array');
+    expect(responseData.results.length).to.be.at.least(5);
+  });
+  
+  test("Validate permission and type properties", function() {
+    expect(responseData.results).to.be.an('array');
+    responseData.results.forEach(function(result) {
+      expect(result.permission).to.be.a('string').and.to.have.lengthOf.at.least(1, "Permission should not be empty");
+      expect(result.type).to.be.a('string');
+    });
+  });
+  
+  test("Verify response schema", function() {
+    expect(responseData).to.be.an('object');
+    expect(responseData.results).to.exist.and.to.be.an('array');
+    responseData.results.forEach(function(result) {
+      expect(result).to.be.an('object');
+      expect(result.permission).to.exist.and.to.be.a('string');
+      expect(result.type).to.exist.and.to.be.a('string');
+    });
+  });
+}

@@ -1,0 +1,50 @@
+meta {
+  name: Search Apps
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{HOST}}/api/apps/?q=wikipedia
+  body: none
+  auth: none
+}
+
+vars:pre-request {
+  expectedResponseTime: 20
+  expectedResponseStatusCode: 200
+}
+
+tests {
+  const responseData = res.body;
+  
+  test("Get Wikipedia via Search", function() {
+    expect(responseData.results[0].appId).to.eql("org.wikipedia");
+  });
+  
+  test("AppId is a non-empty string", function() {
+    expect(responseData).to.be.an('object');
+    expect(responseData.results).to.be.an('array');
+    responseData.results.forEach(function(result) {
+      expect(result.appId).to.be.a('string').and.to.have.lengthOf.at.least(1, "Value should not be empty");
+    });
+  });
+  
+  test("Url is in a valid format", function() {
+    expect(responseData).to.be.an('object');
+    expect(responseData.results).to.be.an('array').and.to.have.lengthOf.at.least(1, "Results array should not be empty");
+    responseData.results.forEach(function(result) {
+      expect(result.url).to.be.a('string').and.to.match(/^https?:\/\/[^\s/$.?#].[^\s]*$/, "Url is not in a valid format");
+    });
+  });
+  
+  test("Developer object has the required fields - devId, url", function() {
+    expect(responseData).to.be.an('object');
+    expect(responseData.results).to.be.an('array');
+    responseData.results.forEach(function(result) {
+      expect(result.developer).to.exist.and.to.be.an('object');
+      expect(result.developer.devId).to.exist.and.to.be.a('string');
+      expect(result.developer.url).to.exist.and.to.be.a('string');
+    });
+  });
+}

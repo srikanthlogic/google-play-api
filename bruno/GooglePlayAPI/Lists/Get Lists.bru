@@ -1,0 +1,40 @@
+meta {
+  name: Get Lists
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{HOST}}/api/lists?category=EDUCATION&collection=TOP_FREE
+  body: none
+  auth: none
+}
+
+tests {
+  const responseData = res.body;
+
+  test("Response status code is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("Title is a non-empty string", function() {
+    expect(responseData.results).to.be.an('array');
+    responseData.results.forEach(function(result) {
+      expect(result.title).to.be.a('string').and.to.have.lengthOf.at.least(1, "Title should not be empty");
+    });
+  });
+
+  test("appId is a non-empty string", function() {
+    expect(responseData.results).to.be.an('array');
+    responseData.results.forEach(function(result) {
+      expect(result.appId).to.be.a('string').and.to.have.lengthOf.at.least(1, "Value should not be empty");
+    });
+  });
+
+  test("The url should be a non-empty string", function() {
+    expect(responseData.results).to.be.an('array');
+    responseData.results.forEach(function(result) {
+      expect(result.url).to.be.a('string').and.to.have.lengthOf.at.least(1, "Value should not be empty");
+    });
+  });
+}

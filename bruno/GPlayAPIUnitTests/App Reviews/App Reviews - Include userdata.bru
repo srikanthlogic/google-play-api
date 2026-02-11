@@ -1,0 +1,47 @@
+meta {
+  name: App Reviews - Include userdata
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{HOST}}/api/apps/{{APP_ID}}/reviews?userdata=true&replies=false
+  body: none
+  auth: none
+}
+
+tests {
+  const responseData = res.body;
+  
+  test("Reviews contain the 'userName', 'userImage' attributes", function() {
+    responseData.results.data.forEach(function(review) {
+      expect(review.userName).to.not.be.undefined;
+      expect(review.userImage).to.not.be.undefined;
+    });
+  });
+  
+  test("Validate the results object", function() {
+    expect(responseData.results).to.exist.and.to.be.an('object');
+    expect(responseData.results.data).to.exist.and.to.be.an('array');
+    expect(responseData.results.nextPaginationToken).to.exist.and.to.be.a('string');
+  });
+  
+  test("Data array is present and contains at least one element", function() {
+    expect(responseData.results.data).to.exist.and.to.be.an('array');
+    expect(responseData.results.data.length).to.be.at.least(1);
+  });
+  
+  test("Reviews contain the 'date' attribute", function() {
+    const reviews = responseData.results.data;
+    reviews.forEach(function(review) {
+      expect(review.date).to.exist;
+    });
+  });
+  
+  test("Verify that 'score' is a non-negative integer", function() {
+    expect(responseData.results.data).to.be.an('array').that.is.not.empty;
+    responseData.results.data.forEach(function(review) {
+      expect(review.score).to.be.a('number').and.to.be.at.least(0);
+    });
+  });
+}

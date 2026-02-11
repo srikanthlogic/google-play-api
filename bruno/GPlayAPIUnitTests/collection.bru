@@ -1,0 +1,19 @@
+meta {
+  name: GPlayAPIUnitTests
+  description: Unit tests for GPlayAPI specific enhancements
+}
+
+vars:pre-request {
+  expectedResponseTime: 20
+  expectedResponseStatusCode: 200
+  APP_ID: in.juspay.nammayatri
+  COUNTRY_CODE: US
+  LANGUAGE_CODE: en
+  HOST: http://localhost:3001
+}
+
+tests {
+  test("Status code is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+}

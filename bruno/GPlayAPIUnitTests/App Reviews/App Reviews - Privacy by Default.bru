@@ -1,0 +1,44 @@
+meta {
+  name: App Reviews - Privacy by Default
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{HOST}}/api/apps/{{APP_ID}}/reviews
+  body: none
+  auth: none
+}
+
+params:query {
+  ~num: 100
+  ~sort: 2
+  ~country: {{COUNTRY_CODE}}
+  ~lang: {{LANGUAGE_CODE}}
+  ~paginate: false
+  ~nextPaginationToken:
+  ~replies: false
+  userdata: false
+}
+
+tests {
+  const responseData = res.getBody();
+  
+  test("Validate the results object", function() {
+    expect(responseData).to.be.an('object');
+    expect(responseData.results).to.exist.and.to.be.an('object');
+  });
+  
+  test("The 'data' array is present and contains at least one element", function() {
+    expect(responseData).to.be.an('object');
+    expect(responseData.results.data).to.exist.and.to.be.an('array').and.to.have.lengthOf.at.least(1);
+  });
+  
+  test("Reviews does not contain the 'userName', 'userImage', 'replyText' attributes", function() {
+    responseData.results.data.forEach(function(data) {
+      expect(data.userName).to.not.exist;
+      expect(data.userImage).to.not.exist;
+      expect(data.replyText).to.not.exist;
+    });
+  });
+}

@@ -1,0 +1,46 @@
+meta {
+  name: App Reviews - Include Replies
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{HOST}}/api/apps/{{APP_ID}}/reviews
+  body: none
+  auth: none
+}
+
+params:query {
+  ~num: 100
+  ~sort: 2
+  ~country: {{COUNTRY_CODE}}
+  ~lang: {{LANGUAGE_CODE}}
+  ~paginate: false
+  ~nextPaginationToken:
+  replies: true
+  ~userdata: false
+}
+
+tests {
+  const responseData = res.getBody();
+  
+  test("Validate the results object", function() {
+    expect(responseData).to.be.an('object');
+    expect(responseData.results).to.exist.and.to.be.an('object');
+  });
+  
+  test("The 'data' array is present and contains at least one element", function() {
+    expect(responseData).to.be.an('object');
+    expect(responseData.results.data).to.exist.and.to.be.an('array').and.to.have.lengthOf.at.least(1);
+  });
+  
+  test("Reviews does not contain the 'userName', 'userImage' attributes, and replyText doesn't contain username", function() {
+    responseData.results.data.forEach(function(data) {
+      expect(data.userName).to.not.exist;
+      expect(data.userImage).to.not.exist;
+      if (data.replyText !== undefined) {
+        expect(data.replyText).to.not.contains(data.userName);
+      }
+    });
+  });
+}

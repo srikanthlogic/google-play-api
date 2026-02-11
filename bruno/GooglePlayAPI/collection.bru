@@ -1,0 +1,24 @@
+meta {
+  name: Google Play API
+  description: Google Play API turns google-play-scraper into a RESTful API. API for fetching Google Play Store data.
+}
+
+vars:pre-request {
+  expectedResponseTime: 20
+  expectedResponseStatusCode: 200
+  APP_ID: org.wikipedia
+  DEV_ID: Wikimedia Foundation
+  COUNTRY_CODE: IN
+  LANGUAGE_CODE: en
+  HOST: http://localhost:3001
+}
+
+tests {
+  test("Status code should be 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response time should be within 20 seconds", function() {
+    expect(res.getResponseTime()).to.be.below(20000);
+  });
+}

@@ -1,0 +1,9 @@
+{
+  "version": "1",
+  "name": "GPlayAPIUnitTests",
+  "type": "collection",
+  "ignore": [
+    "node_modules",
+    ".git"
+  ]
+}

@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.6.1] - 2026-02-11
+
+### Fixed
+- **Privacy bug**: `userImage` field was not being properly filtered when `userdata=false` query parameter was used in reviews endpoint. Changed `_userImage` to `userImage` in `lib/index.js` destructuring pattern (line 198).
+- **Test runner**: Modified `test.js` to automatically start and stop the server before/after running Newman tests, eliminating `ECONNREFUSED` errors.
+
+### Changed
+- **DataSafety tests**: Updated Postman collection tests to handle current Google Play Store data format where Wikipedia app now returns empty `privacyPolicyUrl` and `securityPractices` arrays.
+
+### Tests
+- All 99 assertions now passing (28 in GPlayAPIUnitTests + 71 in GooglePlayAPI collection)
+- Fixed 3 privacy-related test failures
+- Fixed 2 DataSafety test failures (Wikipedia app data changes)
+
 ## [1.6.0] - 2025-12-02
 
 ### Added

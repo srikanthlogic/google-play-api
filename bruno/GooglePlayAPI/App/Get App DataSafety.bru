@@ -1,0 +1,44 @@
+meta {
+  name: Get App DataSafety
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{HOST}}/api/apps/{{APP_ID}}/datasafety
+  body: none
+  auth: none
+}
+
+params:query {
+  ~lang: {{LANGUAGE_CODE}}
+}
+
+tests {
+  const responseData = res.getBody();
+  
+  test("Check privacy policy link", function() {
+    expect(responseData.results.privacyPolicyUrl).to.be.oneOf(["http://wikimediafoundation.org/wiki/Privacy_policy", undefined]);
+  });
+  
+  test("Verify that the 'sharedData' array is present and empty", function() {
+    expect(responseData.results.sharedData).to.exist;
+    expect(responseData.results.sharedData).to.be.an('array');
+    expect(responseData.results.sharedData).to.have.lengthOf(0);
+  });
+  
+  test("Verify that the 'collectedData' array is present and empty", function() {
+    expect(responseData.results).to.be.an('object');
+    expect(responseData.results.collectedData).to.be.an('array');
+    expect(responseData.results.collectedData).to.be.empty;
+  });
+  
+  test("Validate the structure of the securityPractices array", function() {
+    expect(responseData.results.securityPractices).to.be.an("array");
+    responseData.results.securityPractices.forEach(function(practice) {
+      expect(practice).to.be.an('object');
+      expect(practice.practice).to.be.a('string');
+      expect(practice.description).to.be.a('string');
+    });
+  });
+}

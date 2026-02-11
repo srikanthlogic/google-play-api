@@ -1,0 +1,44 @@
+meta {
+  name: Get Similar Apps
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{HOST}}/api/apps/{{APP_ID}}/similar
+  body: none
+  auth: none
+}
+
+params:query {
+  ~country: {{COUNTRY_CODE}}
+  ~language: {{LANGUAGE_CODE}}
+  ~fullDetail: true
+}
+
+tests {
+  const responseData = res.getBody();
+  
+  test("Validate the results array is present and contains at least one element", function() {
+    expect(responseData).to.be.an('object');
+    expect(responseData.results).to.exist.and.to.be.an('array').that.is.not.empty;
+  });
+  
+  test("Validate that devId and url fields are present in the developer object", function() {
+    expect(responseData.results).to.be.an('array').and.to.have.lengthOf.at.least(1);
+    responseData.results.forEach(function(result) {
+      expect(result.developer).to.exist.and.to.be.an('object');
+      expect(result.developer.devId).to.exist.and.to.be.a('string');
+      expect(result.developer.url).to.exist.and.to.be.a('string');
+    });
+  });
+  
+  test("The price should be a non-negative number", function() {
+    expect(responseData).to.be.an('object');
+    expect(responseData.results).to.exist.and.to.be.an('array');
+    responseData.results.forEach(function(result) {
+      expect(result.price).to.exist.and.to.be.a('number');
+      expect(result.price).to.be.at.least(0);
+    });
+  });
+}
