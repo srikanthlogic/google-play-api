@@ -41,12 +41,6 @@ jobs:
       - name: Run Tests
         run: npm test
 
-      - name: Upload HTML Report
-        uses: actions/upload-artifact@v4.3.1
-        with:
-          name: html-report
-          path: newman/*.html
-
           
   build_and_push_docker_image:
     needs: build_and_test

@@ -33,3 +33,7 @@ build/
 newman
 
 openapi/swagger.json
+
+# Bruno test reports
+bruno/bruno-reports
+bruno-reports

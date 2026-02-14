@@ -9,7 +9,7 @@ const waitForServer = async (url, maxAttempts = 30) => {
       if (response.status === 200) {
         return true;
       }
-    } catch (_err) {
+    } catch {
       // Server not ready yet
     }
     await delay(1000);
@@ -21,7 +21,7 @@ const runBruno = (collectionPath, environment) => {
   return new Promise((resolve, reject) => {
     try {
       const result = execSync(
-        `npx @usebruno/cli run . -r --env ${environment}`,
+        `npx @usebruno/cli run . -r --env ${environment} -f html`,
         {
           stdio: 'inherit',
           cwd: collectionPath
