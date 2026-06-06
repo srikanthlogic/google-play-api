@@ -20,10 +20,21 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 
-const windowMs = parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000', 10);
-const maxRequests = parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '100', 10);
-const skipSuccessfulRequests = process.env.RATE_LIMIT_SKIP_SUCCESSFUL_REQUESTS === 'true';
-const skipFailedRequests = process.env.RATE_LIMIT_SKIP_FAILED_REQUESTS === 'true';
+const getEnvInt = (key, defaultValue, min = 1) => {
+  const parsed = parseInt(process.env[key], 10);
+  return Number.isNaN(parsed) || parsed < min ? defaultValue : parsed;
+};
+
+const getEnvBool = (key, defaultValue) => {
+  const val = process.env[key];
+  if (val === undefined) return defaultValue;
+  return val === 'true' ? true : val === 'false' ? false : defaultValue;
+};
+
+const windowMs = getEnvInt('RATE_LIMIT_WINDOW_MS', 900000);
+const maxRequests = getEnvInt('RATE_LIMIT_MAX_REQUESTS', 100);
+const skipSuccessfulRequests = getEnvBool('RATE_LIMIT_SKIP_SUCCESSFUL_REQUESTS', false);
+const skipFailedRequests = getEnvBool('RATE_LIMIT_SKIP_FAILED_REQUESTS', false);
 
 const limiter = rateLimit({
   windowMs,
@@ -37,12 +48,11 @@ const limiter = rateLimit({
     res.set('Retry-After', retryAfterSeconds);
     res.status(429).json({
       error: {
-        message: `Too many requests from this IP (${maxRequests} requests per ${Math.round(windowMs / 60000)} minutes). Please try again after ${retryAfterSeconds} seconds.`
+        message: `Too many requests from this IP. Please try again after ${retryAfterSeconds} seconds.`
       }
     });
   }
 });
-app.use(limiter);
 
 app.use((req, res, next) => {
   res.removeHeader('X-Powered-By');
@@ -70,7 +80,7 @@ const options = {
 app.use('/openapi.json', Express.static('openapi/swagger.json'));
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument, options));
-app.use('/api/', router);
+app.use('/api/', limiter, router);
 
 app.get('/', function (req, res) {
   res.redirect('/api-docs');
