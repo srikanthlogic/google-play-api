@@ -1,0 +1,49 @@
+meta {
+  name: Apps
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{HOST}}/api/apps
+  body: none
+  auth: none
+}
+
+params:query {
+  ~q: map
+  ~fullDetail: true
+  ~country: {{COUNTRY_CODE}}
+  ~language: {{LANGUAGE_CODE}}
+  ~num: 10
+  ~age: FAMILY
+  ~category: FINANCE
+  ~collection: GROSSING
+}
+
+vars:pre-request {
+  expectedResponseTime: 60
+  expectedResponseStatusCode: 200
+}
+
+tests {
+  const responseData = res.getBody();
+  
+  test("List of all apps equals 200", function() {
+    expect(responseData.results).to.have.lengthOf(200);
+  });
+  
+  test("appId is a non-empty string", function() {
+    responseData.results.forEach(function(app) {
+      expect(app.appId).to.be.a('string').and.to.have.lengthOf.at.least(1, "Value should not be empty");
+    });
+  });
+  
+  test("Price is a non-negative number", function() {
+    expect(responseData).to.be.an('object');
+    expect(responseData.results).to.exist.and.to.be.an('array');
+    responseData.results.forEach(function(app) {
+      expect(app.price).to.exist.and.to.be.at.least(0, "Price should be a non-negative number");
+    });
+  });
+}

@@ -7,6 +7,7 @@ import fs from 'fs';
 import morgan from 'morgan';
 import cors from 'cors';
 import rateLimit from 'express-rate-limit';
+import logger from './lib/logger.js';
 
 const app = Express();
 const port = process.env.PORT || 3000;
@@ -67,7 +68,7 @@ app.use(Express.json({ limit: '10mb' }));
 app.use(Express.urlencoded({ extended: true, limit: '10mb' }));
 
 if (process.env.LOGGING || false) {
-  console.log('Logging is enabled');
+  logger.info('Logging is enabled');
   app.use(morgan('combined'));
 }
 
@@ -92,8 +93,8 @@ app.use((req, res, next) => {
   next(err);
 });
 
-app.use((err, req, res) => {
-  console.error(err.stack);
+app.use((err, req, res, _next) => {
+  logger.error({ error: err.message, stack: err.stack }, 'Request error');
   res.status(err.status || 500);
   res.json({
     error: {
@@ -104,5 +105,5 @@ app.use((err, req, res) => {
 });
 
 app.listen(port, () => {
-  console.log(`Server started on port ${port}`);
+  logger.info(`Server started on port ${port}`);
 });

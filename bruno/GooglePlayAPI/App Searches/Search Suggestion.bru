@@ -1,0 +1,41 @@
+meta {
+  name: Search Suggestion
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{HOST}}/api/apps/?suggest=face
+  body: none
+  auth: none
+}
+
+tests {
+  const responseData = res.body;
+  
+  test("Search face and expect facebook as first suggestion", function() {
+    expect(responseData.results[0].term).to.eql("facebook");
+  });
+  
+  test("Response has the required fields", function() {
+    expect(responseData).to.be.an('object');
+    expect(responseData.results).to.exist;
+  });
+  
+  test("Verify that the 'results' array is present in the response and contains at least one element", function() {
+    expect(responseData).to.be.an('object');
+    expect(responseData.results).to.exist.and.to.be.an('array');
+    expect(responseData.results.length).to.be.at.least(1);
+  });
+  
+  test("Verify that the term in the first suggestion is a non-empty string", function() {
+    expect(responseData.results).to.be.an('array').that.is.not.empty;
+    expect(responseData.results[0].term).to.be.a('string').and.to.have.lengthOf.at.least(1);
+  });
+  
+  test("Verify that the 'url' in the first suggestion is a non-empty string", function() {
+    expect(responseData.results).to.be.an('array');
+    expect(responseData.results[0]).to.be.an('object');
+    expect(responseData.results[0].url).to.be.a('string').and.to.have.lengthOf.at.least(1, "Value should not be empty");
+  });
+}

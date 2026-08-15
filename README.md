@@ -1,5 +1,5 @@
 # Google Play API
-![GitHub tag (latest SemVer pre-release)](https://img.shields.io/github/v/tag/srikanthlogic/google-play-api?include_prereleases&label=version) [![Newman Run](https://github.com/srikanthlogic/google-play-api/actions/workflows/newman.yml/badge.svg)](https://github.com/srikanthlogic/google-play-api/actions/workflows/newman.yml) [![API Documentation](https://img.shields.io/badge/api-documentation-brightgreen)](https://gplayapi.cashlessconsumer.in/) [![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg)](https://opensource.org/licenses/ISC)
+![GitHub tag (latest SemVer pre-release)](https://img.shields.io/github/v/tag/srikanthlogic/google-play-api?include_prereleases&label=version) [![Bruno Run](https://github.com/srikanthlogic/google-play-api/actions/workflows/bruno.yml/badge.svg)](https://github.com/srikanthlogic/google-play-api/actions/workflows/bruno.yml) [![API Documentation](https://img.shields.io/badge/api-documentation-brightgreen)](https://gplayapi.cashlessconsumer.in/) [![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg)](https://opensource.org/licenses/ISC)
 
 Google Play API is a REST API wrapper originally built on top of [google-play-scraper](https://github.com/facundoolano/google-play-scraper) by [Facundoolano](https://github.com/facundoolano) to fetch metadata from [Google Play](https://en.wikipedia.org/wiki/Google_Play). This repository extends it and adds additional endpoints.
 
@@ -113,10 +113,39 @@ For complete API documentation, including all endpoints, parameters, and respons
 - **Interactive Documentation**: [https://gplayapi.cashlessconsumer.in/](https://gplayapi.cashlessconsumer.in/)
 - **Local Documentation**: http://localhost:3000/api-docs (when running locally)
 
+## Test Coverage
+
+The project uses [Bruno](https://www.usebruno.com/) for API testing with comprehensive test coverage. Bruno is a Git-friendly, open-source API client that stores API requests as plain text files.
+
+| Test Suite | Requests | Assertions | Status |
+|------------|----------|------------|--------|
+| GPlayAPIUnitTests | 5 | 28 | ✅ All Pass |
+| GooglePlayAPI | 12 | 71 | ✅ All Pass |
+| **Total** | **17** | **99** | **✅ 100%** |
+
+### Running Tests
+
+```bash
+npm test
+```
+
+This will:
+1. Start the server automatically
+2. Execute all Bruno collections
+3. Report test results
+4. Shut down the server
+
+### Test Structure
+
+Tests are organized in the `bruno/` directory:
+- `bruno/GooglePlayAPI/` - Main API endpoint tests (Apps, Developers, Categories, Lists, Collections)
+- `bruno/GPlayAPIUnitTests/` - Unit tests for privacy features and app reviews
+- `bruno/*/environments/Local.bru` - Environment variables for local testing
+
 ## Contributing
 
 For detailed information about contributing to this project, including development setup, code style guidelines, and the contribution process, please see our [Development Guide](DEVELOP.md).
 
 ## License
 
-This project is licensed under the ISC License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

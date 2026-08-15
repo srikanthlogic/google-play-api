@@ -1,0 +1,56 @@
+meta {
+  name: Get Apps by Developer
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{HOST}}/api/developers/{{DEV_ID}}
+  body: none
+  auth: none
+}
+
+params:query {
+  ~fullDetail: true
+  ~lang: en
+  ~country: IN
+  ~num: 5
+}
+
+vars:pre-request {
+  expectedResponseTime: 20
+  expectedResponseStatusCode: 200
+}
+
+tests {
+  const responseData = res.getBody();
+  
+  test("Validate devId is not empty", function() {
+    expect(responseData.devId).to.exist.and.to.not.be.empty;
+  });
+  
+  test("Verify that the 'apps' array is present in the response", function() {
+    expect(responseData).to.be.an('object');
+    expect(responseData.apps).to.exist.and.to.be.an('array');
+  });
+  
+  test("Verify the expected number of elements in the 'apps' array", function() {
+    expect(responseData.apps.length).to.be.at.least(1);
+  });
+  
+  test("Validate title is a non-empty string", function() {
+    expect(responseData.apps).to.be.an('array');
+    responseData.apps.forEach(function(app) {
+      expect(app.title).to.exist.and.to.be.a('string').and.to.have.lengthOf.at.least(1, "Value should not be empty");
+    });
+  });
+  
+  test("The developer object is present and has the required fields", function() {
+    expect(responseData).to.be.an('object');
+    responseData.apps.forEach(function(app) {
+      expect(app.developer).to.exist.and.to.be.an('object');
+      expect(app.developer.devId).to.exist.and.to.be.a('string');
+      expect(app.developer.url).to.exist.and.to.be.a('string');
+    });
+  });
+}

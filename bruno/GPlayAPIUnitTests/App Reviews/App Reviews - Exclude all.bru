@@ -1,0 +1,58 @@
+meta {
+  name: App Reviews - Exclude all
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{HOST}}/api/apps/{{APP_ID}}/reviews
+  body: none
+  auth: none
+}
+
+params:query {
+  ~num: 100
+  ~sort: 2
+  ~country: {{COUNTRY_CODE}}
+  ~lang: {{LANGUAGE_CODE}}
+  ~paginate: false
+  ~nextPaginationToken:
+  ~replies: false
+  userdata: false
+  reviews: false
+}
+
+tests {
+  const responseData = res.getBody();
+  
+  test("Validate the presence of the 'results' object", function() {
+    expect(responseData.results).to.exist;
+  });
+  
+  test("Validate the presence of 'data' array in 'results' object and at least one element", function() {
+    expect(responseData.results).to.exist.and.to.be.an('object');
+    expect(responseData.results.data).to.exist.and.to.be.an('array').and.to.have.lengthOf.at.least(1);
+  });
+  
+  test("Next pagination token field is present", function() {
+    expect(responseData.results.nextPaginationToken).to.exist;
+  });
+  
+  test("Verify replyText doesn't exist in response", function() {
+    responseData.results.data.forEach(function(review) {
+      expect(review.replyText).to.not.exist;
+    });
+  });
+  
+  test("Verify userName does not exist in response", function() {
+    responseData.results.data.forEach(function(review) {
+      expect(review.userName).to.not.exist;
+    });
+  });
+  
+  test("Verify userImage does not exist in response", function() {
+    responseData.results.data.forEach(function(review) {
+      expect(review.userImage).to.not.exist;
+    });
+  });
+}
