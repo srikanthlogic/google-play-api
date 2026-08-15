@@ -1,0 +1,436 @@
+{
+  "arazzo": "1.0.0",
+  "info": {
+    "title": "Google Play Metadata API - Arazzo Workflows",
+    "description": "Common API workflows for the Google Play Metadata API v1.5.0",
+    "version": "1.0.0",
+    "contact": {
+      "name": "Cashless Consumer",
+      "url": "https://www.cashlessconsumer.in/about/contact/"
+    }
+  },
+  "sourceDescriptions": [
+    {
+      "name": "gplay-api",
+      "type": "openapi",
+      "url": "https://gplayapidev.fly.dev/OpenAPI.json"
+    }
+  ],
+  "workflows": [
+    {
+      "workflowId": "discover-app",
+      "summary": "Discover an app: browse lists → get details → get reviews & permissions",
+      "description": "Start with a category/collection list, pick an app, then drill into its full profile including reviews, permissions, data safety, and similar apps.",
+      "inputs": {
+        "type": "object",
+        "properties": {
+          "category": {
+            "type": "string",
+            "description": "App category (e.g. GAME, FINANCE)",
+            "default": "APPLICATION"
+          },
+          "collection": {
+            "type": "string",
+            "description": "Collection type (e.g. topfree, topselling_paid, trending)",
+            "default": "topfree"
+          }
+        }
+      },
+      "steps": [
+        {
+          "stepId": "get-app-list",
+          "operationId": "getLists",
+          "parameters": [
+            { "name": "category", "in": "query", "value": "$inputs.category" },
+            { "name": "collection", "in": "query", "value": "$inputs.collection" }
+          ],
+          "outputs": {
+            "appList": "$response.body#/results"
+          },
+          "successCriteria": [
+            { "condition": "$statusCode == 200" }
+          ],
+          "description": "Fetch the list of apps for the given category and collection"
+        },
+        {
+          "stepId": "pick-first-app",
+          "operationId": "getAppDetails",
+          "parameters": [
+            { "name": "appId", "in": "path", "value": "$steps.get-app-list.outputs.appList[0].appId" }
+          ],
+          "outputs": {
+            "appDetails": "$response.body"
+          },
+          "successCriteria": [
+            { "condition": "$statusCode == 200" }
+          ],
+          "description": "Get full details for the first app in the list"
+        },
+        {
+          "stepId": "get-reviews",
+          "operationId": "getAppReviews",
+          "parameters": [
+            { "name": "appId", "in": "path", "value": "$steps.pick-first-app.outputs.appDetails.appId" }
+          ],
+          "outputs": {
+            "reviews": "$response.body"
+          },
+          "successCriteria": [
+            { "condition": "$statusCode == 200" }
+          ],
+          "description": "Get user reviews for the selected app"
+        },
+        {
+          "stepId": "get-permissions",
+          "operationId": "getAppPermissions",
+          "parameters": [
+            { "name": "appId", "in": "path", "value": "$steps.pick-first-app.outputs.appDetails.appId" }
+          ],
+          "outputs": {
+            "permissions": "$response.body"
+          },
+          "successCriteria": [
+            { "condition": "$statusCode == 200" }
+          ],
+          "description": "Get app permissions"
+        },
+        {
+          "stepId": "get-datasafety",
+          "operationId": "getAppDataSafety",
+          "parameters": [
+            { "name": "appId", "in": "path", "value": "$steps.pick-first-app.outputs.appDetails.appId" }
+          ],
+          "outputs": {
+            "dataSafety": "$response.body"
+          },
+          "successCriteria": [
+            { "condition": "$statusCode == 200" }
+          ],
+          "description": "Get data safety information"
+        },
+        {
+          "stepId": "get-similar",
+          "operationId": "getSimilarApps",
+          "parameters": [
+            { "name": "appId", "in": "path", "value": "$steps.pick-first-app.outputs.appDetails.appId" }
+          ],
+          "outputs": {
+            "similarApps": "$response.body"
+          },
+          "successCriteria": [
+            { "condition": "$statusCode == 200" }
+          ],
+          "description": "Get similar apps"
+        }
+      ],
+      "outputs": {
+        "appDetails": "$steps.pick-first-app.outputs.appDetails",
+        "reviews": "$steps.get-reviews.outputs.reviews",
+        "permissions": "$steps.get-permissions.outputs.permissions",
+        "dataSafety": "$steps.get-datasafety.outputs.dataSafety",
+        "similarApps": "$steps.get-similar.outputs.similarApps"
+      }
+    },
+    {
+      "workflowId": "developer-research",
+      "summary": "Research a developer's portfolio: find apps → pick one → full profile",
+      "description": "Look up a developer's published apps, then deep-dive into one app's details, reviews, and data safety.",
+      "inputs": {
+        "type": "object",
+        "properties": {
+          "devId": {
+            "type": "string",
+            "description": "Developer ID (e.g. 'WhatsApp LLC', 'Google LLC')",
+            "default": "Google LLC"
+          }
+        }
+      },
+      "steps": [
+        {
+          "stepId": "get-developer-apps",
+          "operationId": "getAppsByDeveloper",
+          "parameters": [
+            { "name": "devId", "in": "path", "value": "$inputs.devId" }
+          ],
+          "outputs": {
+            "devApps": "$response.body"
+          },
+          "successCriteria": [
+            { "condition": "$statusCode == 200" }
+          ],
+          "description": "Fetch all apps by the developer"
+        },
+        {
+          "stepId": "get-app-details",
+          "operationId": "getAppDetails",
+          "parameters": [
+            { "name": "appId", "in": "path", "value": "$steps.get-developer-apps.outputs.devApps[0].appId" }
+          ],
+          "outputs": {
+            "appDetails": "$response.body"
+          },
+          "successCriteria": [
+            { "condition": "$statusCode == 200" }
+          ],
+          "description": "Get full details for the first app by this developer"
+        },
+        {
+          "stepId": "get-app-reviews",
+          "operationId": "getAppReviews",
+          "parameters": [
+            { "name": "appId", "in": "path", "value": "$steps.get-app-details.outputs.appDetails.appId" }
+          ],
+          "outputs": {
+            "reviews": "$response.body"
+          },
+          "successCriteria": [
+            { "condition": "$statusCode == 200" }
+          ],
+          "description": "Get reviews for the selected developer app"
+        },
+        {
+          "stepId": "get-app-datasafety",
+          "operationId": "getAppDataSafety",
+          "parameters": [
+            { "name": "appId", "in": "path", "value": "$steps.get-app-details.outputs.appDetails.appId" }
+          ],
+          "outputs": {
+            "dataSafety": "$response.body"
+          },
+          "successCriteria": [
+            { "condition": "$statusCode == 200" }
+          ],
+          "description": "Get data safety info for the selected developer app"
+        }
+      ],
+      "outputs": {
+        "developerApps": "$steps.get-developer-apps.outputs.devApps",
+        "appDetails": "$steps.get-app-details.outputs.appDetails",
+        "reviews": "$steps.get-app-reviews.outputs.reviews",
+        "dataSafety": "$steps.get-app-datasafety.outputs.dataSafety"
+      }
+    },
+    {
+      "workflowId": "app-deep-dive",
+      "summary": "Full app profile: details + reviews + permissions + data safety + similar",
+      "description": "Given an app ID, fetch every piece of metadata available for it in parallel.",
+      "inputs": {
+        "type": "object",
+        "properties": {
+          "appId": {
+            "type": "string",
+            "description": "Google Play app ID (e.g. com.whatsapp)",
+            "default": "com.whatsapp"
+          }
+        }
+      },
+      "steps": [
+        {
+          "stepId": "details",
+          "operationId": "getAppDetails",
+          "parameters": [
+            { "name": "appId", "in": "path", "value": "$inputs.appId" }
+          ],
+          "outputs": {
+            "details": "$response.body"
+          },
+          "successCriteria": [
+            { "condition": "$statusCode == 200" }
+          ],
+          "description": "Get core app details"
+        },
+        {
+          "stepId": "reviews",
+          "operationId": "getAppReviews",
+          "parameters": [
+            { "name": "appId", "in": "path", "value": "$inputs.appId" }
+          ],
+          "outputs": {
+            "reviews": "$response.body"
+          },
+          "successCriteria": [
+            { "condition": "$statusCode == 200" }
+          ],
+          "description": "Get user reviews"
+        },
+        {
+          "stepId": "permissions",
+          "operationId": "getAppPermissions",
+          "parameters": [
+            { "name": "appId", "in": "path", "value": "$inputs.appId" }
+          ],
+          "outputs": {
+            "permissions": "$response.body"
+          },
+          "successCriteria": [
+            { "condition": "$statusCode == 200" }
+          ],
+          "description": "Get app permissions"
+        },
+        {
+          "stepId": "datasafety",
+          "operationId": "getAppDataSafety",
+          "parameters": [
+            { "name": "appId", "in": "path", "value": "$inputs.appId" }
+          ],
+          "outputs": {
+            "dataSafety": "$response.body"
+          },
+          "successCriteria": [
+            { "condition": "$statusCode == 200" }
+          ],
+          "description": "Get data safety info"
+        },
+        {
+          "stepId": "similar",
+          "operationId": "getSimilarApps",
+          "parameters": [
+            { "name": "appId", "in": "path", "value": "$inputs.appId" }
+          ],
+          "outputs": {
+            "similar": "$response.body"
+          },
+          "successCriteria": [
+            { "condition": "$statusCode == 200" }
+          ],
+          "description": "Get similar apps"
+        }
+      ],
+      "outputs": {
+        "details": "$steps.details.outputs.details",
+        "reviews": "$steps.reviews.outputs.reviews",
+        "permissions": "$steps.permissions.outputs.permissions",
+        "dataSafety": "$steps.datasafety.outputs.dataSafety",
+        "similar": "$steps.similar.outputs.similar"
+      }
+    },
+    {
+      "workflowId": "browse-catalog",
+      "summary": "Browse the Play Store catalog: categories → collections → lists",
+      "description": "Explore the full catalog hierarchy — list all categories, then all collections, then drill into a specific category+collection list.",
+      "inputs": {
+        "type": "object",
+        "properties": {
+          "category": {
+            "type": "string",
+            "default": "APPLICATION"
+          },
+          "collection": {
+            "type": "string",
+            "default": "topfree"
+          }
+        }
+      },
+      "steps": [
+        {
+          "stepId": "categories",
+          "operationId": "getCategories",
+          "parameters": [],
+          "outputs": {
+            "categories": "$response.body"
+          },
+          "successCriteria": [
+            { "condition": "$statusCode == 200" }
+          ],
+          "description": "List all available app categories"
+        },
+        {
+          "stepId": "collections",
+          "operationId": "getCollections",
+          "parameters": [],
+          "outputs": {
+            "collections": "$response.body"
+          },
+          "successCriteria": [
+            { "condition": "$statusCode == 200" }
+          ],
+          "description": "List all available collections"
+        },
+        {
+          "stepId": "list",
+          "operationId": "getLists",
+          "parameters": [
+            { "name": "category", "in": "query", "value": "$inputs.category" },
+            { "name": "collection", "in": "query", "value": "$inputs.collection" }
+          ],
+          "outputs": {
+            "apps": "$response.body#/results"
+          },
+          "successCriteria": [
+            { "condition": "$statusCode == 200" }
+          ],
+          "description": "Fetch apps for the specified category and collection"
+        }
+      ],
+      "outputs": {
+        "categories": "$steps.categories.outputs.categories",
+        "collections": "$steps.collections.outputs.collections",
+        "apps": "$steps.list.outputs.apps"
+      }
+    },
+    {
+      "workflowId": "search-and-compare",
+      "summary": "Search for an app and compare with similar apps",
+      "description": "Search for apps, pick one, then fetch similar apps to compare features, ratings, and data safety.",
+      "inputs": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "Search query (e.g. 'paytm')",
+            "default": "paytm"
+          }
+        }
+      },
+      "steps": [
+        {
+          "stepId": "search",
+          "operationId": "searchSuggestion",
+          "parameters": [
+            { "name": "suggest", "in": "query", "value": "$inputs.query" }
+          ],
+          "outputs": {
+            "searchResults": "$response.body"
+          },
+          "successCriteria": [
+            { "condition": "$statusCode == 200" }
+          ],
+          "description": "Search for apps matching the query"
+        },
+        {
+          "stepId": "app-details",
+          "operationId": "getAppDetails",
+          "parameters": [
+            { "name": "appId", "in": "path", "value": "$steps.search.outputs.searchResults[0].appId" }
+          ],
+          "outputs": {
+            "appDetails": "$response.body"
+          },
+          "successCriteria": [
+            { "condition": "$statusCode == 200" }
+          ],
+          "description": "Get details for the first search result"
+        },
+        {
+          "stepId": "similar-apps",
+          "operationId": "getSimilarApps",
+          "parameters": [
+            { "name": "appId", "in": "path", "value": "$steps.app-details.outputs.appDetails.appId" }
+          ],
+          "outputs": {
+            "similarApps": "$response.body"
+          },
+          "successCriteria": [
+            { "condition": "$statusCode == 200" }
+          ],
+          "description": "Get similar apps for comparison"
+        }
+      ],
+      "outputs": {
+        "searchResults": "$steps.search.outputs.searchResults",
+        "appDetails": "$steps.app-details.outputs.appDetails",
+        "similarApps": "$steps.similar-apps.outputs.similarApps"
+      }
+    }
+  ]
+}
