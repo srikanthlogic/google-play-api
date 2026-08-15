@@ -9,7 +9,7 @@
     "generateoas": "p2o ./PostmanCollections/GooglePlayAPI.postman_collection.json -o ./openapi/options.json -f ./openapi/swagger.json",
     "start": "node server.js",
     "dev": "nodemon server.js",
-    "prepare": "husky"
+    "prepare": "husky || true"
   },
   "author": "Facundo Olano",
   "license": "ISC",
