@@ -9,7 +9,7 @@ const waitForServer = async (url, maxAttempts = 30) => {
       if (response.status === 200) {
         return true;
       }
-    } catch (_err) {
+    } catch {
       // Server not ready yet
     }
     await delay(1000);
