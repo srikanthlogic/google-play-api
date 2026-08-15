@@ -18,11 +18,11 @@
     "url": "https://github.com/srikanthlogic/google-play-api.git"
   },
   "dependencies": {
+    "@mradex77/google-play-scraper": "^1.1.0",
     "cors": "^2.8.5",
     "express": "^4.22.1",
     "express-rate-limit": "^7.4.1",
     "express-validator": "^7.3.1",
-    "google-play-scraper": "^10.1.2",
     "morgan": "^1.10.1",
     "pino": "^10.3.1",
     "postman-to-openapi": "^3.0.1",
@@ -37,6 +37,7 @@
     "eslint-plugin-promise": "^7.2.1",
     "eslint-plugin-standard": "^5.0.0",
     "globals": "^17.3.0",
+    "husky": "^9.1.7",
     "lint-staged": "^16.2.7",
     "nodemon": "^3.1.11",
     "npm-check-updates": "^17.1.18",
