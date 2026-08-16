@@ -497,6 +497,42 @@ test('batch rejects malformed JSON body', async () => {
   assert.equal(res.status, 400);
 });
 
+// ─── B5: GET /suggest promotion ─────────────────────────────────────────────
+
+test('suggest returns terms with search URLs', async () => {
+  const { status, body } = await get('/api/suggest?q=spot');
+  assert.equal(status, 200);
+  assert.equal(body.results.length, 2);
+  assert.equal(body.results[0].term, 'game');
+  assert.match(body.results[0].url, /\/apps\/\?q=game/);
+});
+
+test('suggest rejects a missing q with problem+json on /v2', async () => {
+  const { status, headers, body } = await get('/v2/suggest');
+  assert.equal(status, 400);
+  assert.match(headers.get('content-type'), /application\/problem\+json/);
+  assert.match(body.detail, /q is required/);
+});
+
+test('suggest rejects an empty q', async () => {
+  const { status, body } = await get('/api/suggest?q=');
+  assert.equal(status, 400);
+  assert.equal(body.error, 'Validation failed');
+  assert.match(body.messages[0], /q must be a non-empty string|q is required/);
+});
+
+test('legacy /apps/?suggest= works and sets Deprecation header on v1 only', async () => {
+  const v1 = await get('/api/apps/?suggest=spot');
+  assert.equal(v1.status, 200);
+  assert.equal(v1.body.results[0].term, 'game');
+  assert.equal(v1.headers.get('deprecation'), 'true');
+  assert.match(v1.headers.get('link') || '', /rel="alternate"/);
+
+  const v2 = await get('/v2/apps/?suggest=spot');
+  assert.equal(v2.status, 200);
+  assert.equal(v2.headers.get('deprecation'), null);
+});
+
 // ─── B2: country availability on /apps/:appId/availability ──────────────────
 
 test('availability forwards appId and parsed country codes to scraper', async () => {

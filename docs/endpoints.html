@@ -38,7 +38,8 @@
       <tr><td>GET</td><td><code>/api/apps/:appId/permissions</code></td><td>Permissions list</td></tr>
       <tr><td>GET</td><td><code>/api/apps/:appId/availability?countries=IN,US</code></td><td>Country availability (max 30 codes)</td></tr>
       <tr><td>POST</td><td><code>/api/apps/batch</code> (body: <code>{"appIds": [...], "concurrency": 1-20}</code>)</td><td>Batch app details (max 20 apps, per-app settled results)</td></tr>
-      <tr><td>GET</td><td><code>/api/apps/:appId/reviews?sort=&amp;num=&amp;lang=</code></td><td>App reviews</td></tr>
+            <tr><td>GET</td><td><code>/api/suggest?q=</code></td><td>Search autocomplete (promoted from <code>/apps/?suggest=</code>)</td></tr>
+<tr><td>GET</td><td><code>/api/apps/:appId/reviews?sort=&amp;num=&amp;lang=</code></td><td>App reviews</td></tr>
     </table>
 
     <h2>Browse</h2>
