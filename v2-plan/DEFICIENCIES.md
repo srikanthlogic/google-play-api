@@ -119,8 +119,8 @@
 
 | # | Atomic issue | Type | Notes |
 |---|-------------|------|-------|
-| H1 | No unit tests for `lib/` or `server.js`; coverage not enforced | debt | Add node:test unit suite (mocked scraper) + c8 coverage in CI. Baseline: lib/index.js 97%, logger.js 70%, server.js 0% (untestable — calls `app.listen()` at import). Extract `createApp()` factory. |
-| H2 | Unknown routes return 500 instead of 404 | bug | Catchall sets `err.status = 404` but `getErrorStatusCode()` never reads `.status`; message `'Not Found'` fails the lowercase `'not found'` check. Verified live: `GET /definitely-not-a-route` → 500 problem+json. Fix: honor `err.status`/`err.statusCode` in `getErrorStatusCode`. |
+| H1 | No unit tests for `lib/` or `server.js`; coverage not enforced | debt | Add node:test unit suite (mocked scraper) + c8 coverage in CI. Baseline: lib/index.js 97%, logger.js 70%, server.js 0% (untestable — calls `app.listen()` at import). Extract `createApp()` factory. Done: PR #171 (72 tests, 97.66% stmts), merged e0922ec. |
+| H2 | Unknown routes return 500 instead of 404 | bug | Catchall sets `err.status = 404` but `getErrorStatusCode()` never reads `.status`; message `'Not Found'` fails the lowercase `'not found'` check. Verified live: `GET /definitely-not-a-route` → 500 problem+json. Fix: honor `err.status`/`err.statusCode` in `getErrorStatusCode`. PR #170. |
 
 ---
 
