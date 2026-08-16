@@ -40,7 +40,7 @@
 | B2 | ✅ Fixed — `GET /apps/:appId/availability?countries=` | feature | Shipped: comma-separated ISO-2 codes, max 30, maps scraper statuses to `{available, status, message?}`. |
 | B3 | No streaming/bulk reviews export | feature | Scraper `reviewsAll` / `reviewsIterator`. Add `GET /api/apps/:appId/reviews/export` (NDJSON or CSV stream) as a premium-credit endpoint. |
 | B4 | No search/developer iterators exposed | feature | Scraper `searchIterator`, `developerIterator` for >200 results. Add cursor-paginated `GET /api/apps/search/all`. |
-| B5 | `suggest` buried as `?suggest=` query param on `/apps/` | refactor | Promote to `GET /api/suggest?q=`. Keep legacy param with deprecation header. |
+| B5 | ✅ Fixed — `GET /suggest?q=` | refactor | Shipped: dedicated endpoint; legacy `/apps/?suggest=` still works and returns `Deprecation: true` + `Link` (rel=alternate) headers on /api. |
 | B6 | List pagination emulated via fetch-and-slice | bug-perf | `start+num` fetched then sliced; wasteful. Use scraper iterators; document 200-cap honestly. |
 | B7 | `fullDetail` on search causes errors | bug | Upstream API issue #107. Validate/limit interaction in v2. |
 | B8 | ✅ Fixed — `?fields=` projection on app details | feature | Shipped as whitelist-validated projection (see lib/fields.js). Upstream API issue #22 ("take only a few fields"). |

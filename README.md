@@ -117,6 +117,16 @@ curl -X POST "http://localhost:3000/api/apps/batch" \
   -d '{"appIds": ["in.juspay.nammayatri", "com.duolingo"], "concurrency": 2}'
 ```
 
+### Search Suggest
+
+```bash
+# Autocomplete suggestions for a search term (GET /suggest)
+curl "http://localhost:3000/api/suggest?q=spot"
+
+# Legacy form (still works, sends a Deprecation header on /api)
+curl "http://localhost:3000/api/apps/?suggest=spot"
+```
+
 ### Data Safety and Permissions
 
 ```bash

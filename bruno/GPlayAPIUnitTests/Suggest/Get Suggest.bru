@@ -1,0 +1,36 @@
+meta {
+  name: Get Suggest
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{HOST}}/api/suggest?q=spot
+  body: none
+  auth: none
+}
+
+vars:pre-request {
+  expectedResponseStatusCode: 200
+}
+
+tests {
+  const responseData = res.getBody();
+
+  test("Status code is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("Returns a results array of suggestions", function() {
+    expect(responseData.results).to.be.an("array");
+    expect(responseData.results.length).to.be.at.least(1);
+  });
+
+  test("Each suggestion has term and search url", function() {
+    responseData.results.forEach((item) => {
+      expect(item.term).to.be.a("string");
+      expect(item.url).to.include("/apps/?q=");
+    });
+  });
+
+}

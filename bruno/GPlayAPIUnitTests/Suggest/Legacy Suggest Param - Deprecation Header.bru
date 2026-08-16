@@ -1,0 +1,42 @@
+meta {
+  name: Legacy Suggest Param - Deprecation Header
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{HOST}}/api/apps/?suggest=spot
+  body: none
+  auth: none
+}
+
+vars:pre-request {
+  expectedResponseStatusCode: 200
+}
+
+tests {
+  const headers = res.headers;
+  const responseData = res.getBody();
+
+  test("Status code is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("Legacy param still returns suggestions", function() {
+    expect(responseData.results.length).to.be.at.least(1);
+  });
+
+  test("Deprecation header is set on v1", function() {
+    expect(headers["deprecation"]).to.equal("true");
+  });
+
+  test("Link header points at the promoted /suggest endpoint", function() {
+    const link = headers["link"];
+    expect(link).to.include("/api/suggest");
+    expect(link).to.include('rel="alternate"');
+  });
+
+  test("Status code matches expectedResponseStatusCode", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+}

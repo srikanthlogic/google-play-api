@@ -1,0 +1,28 @@
+meta {
+  name: Get Suggest - Missing q (400 Bad Request)
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{HOST}}/api/suggest
+  body: none
+  auth: none
+}
+
+vars:pre-request {
+  expectedResponseStatusCode: 400
+}
+
+tests {
+  const responseData = res.getBody();
+
+  test("Status code is 400", function() {
+    expect(res.getStatus()).to.equal(400);
+  });
+
+  test("Error message says q is required", function() {
+    expect(responseData.messages.join(" ")).to.include("q is required");
+  });
+
+}
