@@ -44,7 +44,7 @@ Google Play API is a REST API wrapper originally built on top of [google-play-sc
    npm start
    ```
 
-The server will start on port 3000, and you can access the API documentation at http://localhost:3000/api-docs
+The server will start on port 3000. Interactive API documentation is at http://localhost:3000/api-docs and the static documentation microsite is at http://localhost:3000/docs/
 
 ## Usage Examples
 
@@ -112,6 +112,7 @@ curl "http://localhost:3000/api/apps/com.facebook.katana/datasafety"
 For complete API documentation, including all endpoints, parameters, and response formats, visit:
 - **Interactive Documentation**: [https://gplayapi.cashlessconsumer.in/](https://gplayapi.cashlessconsumer.in/)
 - **Local Documentation**: http://localhost:3000/api-docs (when running locally)
+- **Documentation Microsite**: http://localhost:3000/docs/ (when running locally)
 
 ## Test Coverage
 

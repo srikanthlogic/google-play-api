@@ -12,6 +12,8 @@ import logger from './lib/logger.js';
 const app = Express();
 const port = process.env.PORT || 3000;
 
+app.set('trust proxy', 1);
+
 const corsOptions = {
   origin: '*',
   methods: ['GET', 'HEAD', 'OPTIONS'],
@@ -25,6 +27,7 @@ const windowMs = parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000', 10);
 const maxRequests = parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '100', 10);
 const skipSuccessfulRequests = process.env.RATE_LIMIT_SKIP_SUCCESSFUL_REQUESTS === 'true';
 const skipFailedRequests = process.env.RATE_LIMIT_SKIP_FAILED_REQUESTS === 'true';
+const rateLimitDisabled = process.env.RATE_LIMIT_DISABLED === 'true';
 
 const limiter = rateLimit({
   windowMs,
@@ -43,7 +46,9 @@ const limiter = rateLimit({
     });
   }
 });
-app.use(limiter);
+if (!rateLimitDisabled) {
+  app.use('/api/', limiter);
+}
 
 app.use((req, res, next) => {
   res.removeHeader('X-Powered-By');
@@ -69,6 +74,11 @@ const options = {
 };
 
 app.use('/openapi.json', Express.static('openapi/swagger.json'));
+app.use('/docs', Express.static('docs', { index: 'index.html' }));
+
+app.get('/healthz', function (req, res) {
+  res.json({ status: 'ok' });
+});
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument, options));
 app.use('/api/', router);

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>v2 Roadmap — Google Play API Docs</title>
+  <link rel="stylesheet" href="/docs/css/style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/docs/">gplay<span class="accent">api</span></a>
+    <nav>
+      <a href="/docs/">Home</a>
+      <a href="/docs/endpoints.html">Endpoints</a>
+      <a href="/docs/throttling.html">Throttling</a>
+      <a href="/docs/deployment.html">Deployment</a>
+      <a href="/docs/roadmap.html">v2 Roadmap</a>
+    </nav>
+  </header>
+
+  <main>
+    <h1>v2 Roadmap</h1>
+    <p class="lead">All v2 work integrates through the <code>v2dev</code>
+      coordinating branch. Individual features merge to <code>v2dev</code>;
+      milestones are tracked as GitHub issues.</p>
+
+    <h2>M0 — Foundation &amp; Deployment <span class="tag">current</span></h2>
+    <ul>
+      <li><code>v2dev</code> coordinating branch + contribution flow</li>
+      <li><code>gplayapiv2</code> Fly.io verification deployment (no throttling)</li>
+      <li><code>/docs</code> documentation microsite shipped in the Docker image</li>
+      <li>API versioning: v2 under <code>/v2/</code> prefix, v1 frozen with <code>Sunset</code> header</li>
+      <li>RFC 9457 standardized error shape</li>
+      <li>OpenAPI 3.1 generated from zod schemas (drop Postman-generated spec)</li>
+      <li>Response schema validation at the API boundary</li>
+      <li>npm audit debt cleanup (body-parser, lodash via newman, jose)</li>
+      <li>Country/lang defaults consistency fix</li>
+    </ul>
+
+    <h2>M1 — New Endpoints</h2>
+    <ul>
+      <li>Batch app details endpoint</li>
+      <li>Country availability endpoint</li>
+      <li>Promote <code>suggest</code> to <code>GET /api/suggest</code></li>
+      <li>Field selection / sparse responses (<code>?fields=</code>)</li>
+      <li>List pagination via iterators; honest 200-cap</li>
+      <li>Streaming/bulk reviews export (NDJSON/CSV)</li>
+      <li>Search/developer iterators exposed (cursor pagination)</li>
+    </ul>
+
+    <h2>M2 — Reliability</h2>
+    <ul>
+      <li>Response cache with per-endpoint TTLs</li>
+      <li>Request coalescing</li>
+      <li>Circuit breaker / stale-on-error degradation</li>
+      <li>Upstream health probe / drift alerting</li>
+      <li>Retry/backoff at API layer</li>
+      <li>Request timeout budget</li>
+      <li>ETag / conditional requests</li>
+    </ul>
+
+    <h2>Later — M3/M4/M5</h2>
+    <p>Auth &amp; credits (API keys, credit ledger, per-key quotas, usage
+      dashboard), monetization (Stripe credit packs, admin surface, status
+      page), DX &amp; growth (TypeScript/Python SDKs, watch webhooks). Tracked
+      in the <a href="https://github.com/srikanthlogic/google-play-api/blob/v2dev/v2-plan/DEFICIENCIES.md">deficiency log</a>.</p>
+  </main>
+
+  <footer>
+    <p>Google Play API · <a href="https://github.com/srikanthlogic/google-play-api">github.com/srikanthlogic/google-play-api</a></p>
+  </footer>
+  <script src="/docs/js/main.js"></script>
+</body>
+</html>
