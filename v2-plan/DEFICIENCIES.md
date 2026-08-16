@@ -36,7 +36,7 @@
 
 | # | Atomic issue | Type | Notes |
 |---|-------------|------|-------|
-| B1 | No batch app-details endpoint | feature | Scraper has `apps({ appIds, concurrency })`. Add `POST /api/apps/batch` (or `GET ?ids=a,b,c`). High-value for credit system (1 call = N credits). |
+| B1 | ✅ Fixed — `POST /apps/batch` | feature | Shipped: JSON body `{appIds: [...]}` (max 20, deduped), optional `concurrency` 1-20 and `?fields=` projection. Returns settled entries in request order; per-app failures are reported, not fatal. |
 | B2 | ✅ Fixed — `GET /apps/:appId/availability?countries=` | feature | Shipped: comma-separated ISO-2 codes, max 30, maps scraper statuses to `{available, status, message?}`. |
 | B3 | No streaming/bulk reviews export | feature | Scraper `reviewsAll` / `reviewsIterator`. Add `GET /api/apps/:appId/reviews/export` (NDJSON or CSV stream) as a premium-credit endpoint. |
 | B4 | No search/developer iterators exposed | feature | Scraper `searchIterator`, `developerIterator` for >200 results. Add cursor-paginated `GET /api/apps/search/all`. |

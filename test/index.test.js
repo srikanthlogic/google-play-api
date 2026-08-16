@@ -65,7 +65,10 @@ const fake = {
       code,
       i === 0 ? { status: 'available' } : i === 1 ? { status: 'unavailable' } : { status: 'error', message: 'storefront fetch failed' }
     ]))
-  })
+  }),
+  apps: async (opts) => opts.appIds.map((appId) => appId === 'com.example.missing'
+    ? { appId, status: 'rejected', error: { message: 'App not found (404)' } }
+    : { appId, status: 'fulfilled', app: makeApp(appId) })
 };
 
 mock.module('@mradex77/google-play-scraper', {
@@ -73,13 +76,15 @@ mock.module('@mradex77/google-play-scraper', {
   defaultExport: fake
 });
 
-const { default: router } = await import('../lib/index.js');
+const { default: router, errorHandler } = await import('../lib/index.js');
 
 // ─── Test server ─────────────────────────────────────────────────────────────
 
 const app = Express();
+app.use(Express.json());
 app.use('/api', router);
 app.use('/v2', router);
+app.use(errorHandler);
 
 let server;
 let base;
@@ -92,6 +97,18 @@ before(async () => {
 });
 
 after(() => new Promise((resolve) => server.close(resolve)));
+
+const post = async (path, payload) => {
+  const res = await fetch(base + path, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+  const text = await res.text();
+  let body = null;
+  try { body = JSON.parse(text); } catch { /* non-JSON */ }
+  return { status: res.status, headers: res.headers, body };
+};
 
 const get = async (path) => {
   const res = await fetch(base + path);
@@ -401,6 +418,83 @@ test('collections returns scraper collection keys', async () => {
   const { status, body } = await get('/api/collections/');
   assert.equal(status, 200);
   assert.deepEqual(body, ['TOP_SELLING', 'TOP_GROSSING']);
+});
+
+// ─── B1: batch app details on POST /apps/batch ──────────────────────────────
+
+test('batch returns one settled entry per appId, in order', async () => {
+  const { status, body } = await post('/api/apps/batch', { appIds: ['com.example.one', 'com.example.two', 'com.example.missing'] });
+  assert.equal(status, 200);
+  assert.equal(body.results.length, 3);
+  assert.deepEqual(body.results.map((r) => r.appId), ['com.example.one', 'com.example.two', 'com.example.missing']);
+  assert.equal(body.results[0].status, 'fulfilled');
+  assert.equal(body.results[0].app.appId, 'com.example.one');
+  assert.equal(body.results[2].status, 'rejected');
+  assert.equal(body.results[2].app, undefined);
+  assert.equal(body.results[2].error, 'App not found (404)');
+});
+
+test('batch forwards country/lang/concurrency to scraper', async () => {
+  let captured;
+  const original = fake.apps;
+  fake.apps = async (opts) => { captured = opts; return original(opts); };
+  const { status } = await post('/api/apps/batch?country=US&lang=en', { appIds: ['com.example.app'], concurrency: 4 });
+  assert.equal(status, 200);
+  assert.deepEqual(captured.appIds, ['com.example.app']);
+  assert.equal(captured.country, 'US');
+  assert.equal(captured.lang, 'en');
+  assert.equal(captured.concurrency, 4);
+  fake.apps = original;
+});
+
+test('batch rejects a missing appIds array', async () => {
+  const { status, body } = await post('/api/apps/batch', {});
+  assert.equal(status, 400);
+  assert.equal(body.error, 'Validation failed');
+});
+
+test('batch rejects a non-array appIds', async () => {
+  const { status, body } = await post('/api/apps/batch', { appIds: 'com.example.app' });
+  assert.equal(status, 400);
+  assert.match(body.messages[0], /appIds must be an array/);
+});
+
+test('batch rejects an empty appIds array', async () => {
+  const { status, body } = await post('/api/apps/batch', { appIds: [] });
+  assert.equal(status, 400);
+  assert.match(body.messages[0], /at least one/);
+});
+
+test('batch rejects more than 20 appIds', async () => {
+  const appIds = Array.from({ length: 21 }, (_, i) => `com.example.app${i}`);
+  const { status, body } = await post('/api/apps/batch', { appIds });
+  assert.equal(status, 400);
+  assert.match(body.messages[0], /at most 20/);
+});
+
+test('batch rejects invalid concurrency', async () => {
+  const { status, body } = await post('/api/apps/batch', { appIds: ['com.example.app'], concurrency: 21 });
+  assert.equal(status, 400);
+  assert.match(body.messages[0], /concurrency/);
+});
+
+test('batch rejects invalid fields with problem+json on /v2', async () => {
+  const { status, headers, body } = await post('/v2/apps/batch?fields=bogus', { appIds: ['com.example.app'] });
+  assert.equal(status, 400);
+  assert.match(headers.get('content-type'), /application\/problem\+json/);
+  assert.match(body.detail, /unknown field/i);
+});
+
+test('batch applies fields projection to fulfilled apps only', async () => {
+  const { status, body } = await post('/api/apps/batch?fields=appId,title', { appIds: ['com.example.app', 'com.example.missing'] });
+  assert.equal(status, 200);
+  assert.deepEqual(Object.keys(body.results[0].app).sort(), ['appId', 'title']);
+  assert.equal(body.results[1].status, 'rejected');
+});
+
+test('batch rejects malformed JSON body', async () => {
+  const res = await fetch(base + '/api/apps/batch', { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{oops' });
+  assert.equal(res.status, 400);
 });
 
 // ─── B2: country availability on /apps/:appId/availability ──────────────────

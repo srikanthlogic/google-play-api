@@ -107,6 +107,16 @@ curl "http://localhost:3000/api/lists/?collection=TOP_FREE&category=PRODUCTIVITY
 curl "http://localhost:3000/api/apps/com.tencent.mm/availability?countries=IN,US,GB"
 ```
 
+### Batch App Details
+
+```bash
+# Fetch details for up to 20 apps in one call (POST JSON body)
+# Optional: concurrency (1-20), ?fields= for sparse responses, ?country=/?lang=
+curl -X POST "http://localhost:3000/api/apps/batch" \
+  -H "Content-Type: application/json" \
+  -d '{"appIds": ["in.juspay.nammayatri", "com.duolingo"], "concurrency": 2}'
+```
+
 ### Data Safety and Permissions
 
 ```bash
