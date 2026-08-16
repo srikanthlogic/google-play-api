@@ -84,6 +84,16 @@ const runTests = async () => {
     const v2AppResponse = await contractFetch('http://127.0.0.1:3000/v2/apps/com.google.android.apps.translate?country=US&lang=en');
     if (v2AppResponse.status !== 200) throw new Error(`v2 app endpoint returned ${v2AppResponse.status}`);
 
+    // B13: country/lang validation contract checks
+    const badCountry = await contractFetch('http://127.0.0.1:3000/v2/apps/com.google.android.apps.translate?country=USA');
+    if (badCountry.status !== 400) throw new Error(`invalid country must return 400, got ${badCountry.status}`);
+
+    const badLang = await contractFetch('http://127.0.0.1:3000/v2/apps/com.google.android.apps.translate?lang=english');
+    if (badLang.status !== 400) throw new Error(`invalid lang must return 400, got ${badLang.status}`);
+
+    const defaultCountry = await contractFetch('http://127.0.0.1:3000/v2/apps/com.google.android.apps.translate');
+    if (defaultCountry.status !== 200) throw new Error(`default country/lang request returned ${defaultCountry.status}`);
+
     console.log('\nAPI tests completed successfully!');
   } catch (err) {
     console.error('Test execution error:', err);
