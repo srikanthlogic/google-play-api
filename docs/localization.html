@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Localization — Google Play API</title>
+  <link rel="stylesheet" href="/docs/css/style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/docs/">gplay<span class="accent">api</span></a>
+    <nav>
+      <a href="/docs/">Home</a>
+      <a href="/docs/endpoints.html">Endpoints</a>
+      <a href="/docs/errors.html">Errors</a>
+      <a href="/docs/throttling.html">Throttling</a>
+      <a href="/docs/localization.html">Localization</a>
+      <a href="/docs/deployment.html">Deployment</a>
+      <a href="/docs/roadmap.html">v2 Roadmap</a>
+    </nav>
+  </header>
+
+  <main>
+    <h1>Localization: country &amp; lang</h1>
+    <p class="lead">
+      Every request targets a Google Play storefront. Two parameters control
+      which store and which language you see: <code>country</code> and <code>lang</code>.
+    </p>
+
+    <h2>Single source of truth</h2>
+    <p>
+      Defaults are resolved in one place — the router middleware in
+      <code>lib/index.js</code> — using constants from <code>lib/constants.js</code>.
+      There is no per-route override logic.
+    </p>
+    <table>
+      <tr><th>Layer</th><th>Value</th><th>Notes</th></tr>
+      <tr><td>Query param</td><td><code>?country=IN&amp;lang=ta</code></td><td>Highest priority. Validated per request.</td></tr>
+      <tr><td>Env override</td><td><code>COUNTRY_OF_QUERY</code> / <code>LANG_OF_QUERY</code></td><td>Server-wide default when no query param is given.</td></tr>
+      <tr><td>Code constant</td><td><code>DEFAULT_COUNTRY='US'</code> / <code>DEFAULT_LANG='en'</code></td><td>Fallback when env is unset.</td></tr>
+    </table>
+
+    <h2>Validation</h2>
+    <ul>
+      <li><code>country</code> — ISO 3166-1 alpha-2, case-insensitive. Normalized to uppercase before use. Invalid codes return <code>400</code> with <code>application/problem+json</code> on <code>/v2</code>.</li>
+      <li><code>lang</code> — ISO 639-1, case-insensitive. Normalized to lowercase. Invalid codes return <code>400</code>.</li>
+    </ul>
+
+    <h2>Country / lang matrix</h2>
+    <p>
+      The scraper passes <code>country</code> and <code>lang</code> directly to the
+      Play Store batchexecute endpoint. Any valid ISO pair is accepted — the API
+      does not maintain a hardcoded allowlist. Common combinations:
+    </p>
+    <table>
+      <tr><th>country</th><th>lang</th><th>Storefront</th></tr>
+      <tr><td><code>US</code></td><td><code>en</code></td><td>United States (default)</td></tr>
+      <tr><td><code>IN</code></td><td><code>en</code></td><td>India, English</td></tr>
+      <tr><td><code>IN</code></td><td><code>ta</code></td><td>India, Tamil</td></tr>
+      <tr><td><code>IN</code></td><td><code>hi</code></td><td>India, Hindi</td></tr>
+      <tr><td><code>GB</code></td><td><code>en</code></td><td>United Kingdom</td></tr>
+      <tr><td><code>DE</code></td><td><code>de</code></td><td>Germany</td></tr>
+      <tr><td><code>JP</code></td><td><code>ja</code></td><td>Japan</td></tr>
+      <tr><td><code>BR</code></td><td><code>pt</code></td><td>Brazil</td></tr>
+    </table>
+    <p>
+      <strong>Note:</strong> not every app is available in every storefront.
+      A valid request may still return <code>404 App not found</code> if the app
+      is geo-restricted.
+    </p>
+
+    <h2>Examples</h2>
+<pre><code># Default (US / en)
+curl "https://gplayapiv2.fly.dev/v2/apps/com.instagram.android"
+
+# Indian storefront, Tamil UI
+curl "https://gplayapiv2.fly.dev/v2/apps/com.instagram.android?country=IN&amp;lang=ta"
+
+# Invalid country → 400 problem+json
+curl "https://gplayapiv2.fly.dev/v2/apps/com.instagram.android?country=XX"</code></pre>
+
+    <h2>Environment configuration</h2>
+<pre><code># .env
+COUNTRY_OF_QUERY=IN
+LANG_OF_QUERY=en</code></pre>
+    <p>
+      The <code>gplayapiv2</code> verification deployment sets
+      <code>COUNTRY_OF_QUERY=IN</code> to match the primary audience.
+      Production (<code>main</code>) uses the code default (<code>US</code>/<code>en</code>)
+      unless overridden.
+    </p>
+  </main>
+
+  <footer>
+    <p>Google Play API · <a href="https://github.com/srikanthlogic/google-play-api">github.com/srikanthlogic/google-play-api</a></p>
+  </footer>
+  <script src="/docs/js/main.js"></script>
+</body>
+</html>
