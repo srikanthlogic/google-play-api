@@ -1,0 +1,32 @@
+meta {
+  name: Get App Availability - Region Lock
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{HOST}}/api/apps/com.tencent.mm/availability?countries=IN,US
+  body: none
+  auth: none
+}
+
+tests {
+  const responseData = res.getBody();
+
+  test("Status code is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("appId matches the requested app", function() {
+    expect(responseData.appId).to.equal("com.tencent.mm");
+  });
+
+  test("WeChat is unavailable in the IN storefront", function() {
+    expect(responseData.countries.IN.available).to.equal(false);
+    expect(responseData.countries.IN.status).to.equal("unavailable");
+  });
+
+  test("WeChat is available in the US storefront", function() {
+    expect(responseData.countries.US.available).to.equal(true);
+  });
+}

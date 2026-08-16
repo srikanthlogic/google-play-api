@@ -37,7 +37,7 @@
 | # | Atomic issue | Type | Notes |
 |---|-------------|------|-------|
 | B1 | No batch app-details endpoint | feature | Scraper has `apps({ appIds, concurrency })`. Add `POST /api/apps/batch` (or `GET ?ids=a,b,c`). High-value for credit system (1 call = N credits). |
-| B2 | No country-availability endpoint | feature | Scraper `availability({ appId, countries })` → available/unavailable/error per storefront. Add `GET /api/apps/:appId/availability?countries=IN,US,...`. |
+| B2 | ✅ Fixed — `GET /apps/:appId/availability?countries=` | feature | Shipped: comma-separated ISO-2 codes, max 30, maps scraper statuses to `{available, status, message?}`. |
 | B3 | No streaming/bulk reviews export | feature | Scraper `reviewsAll` / `reviewsIterator`. Add `GET /api/apps/:appId/reviews/export` (NDJSON or CSV stream) as a premium-credit endpoint. |
 | B4 | No search/developer iterators exposed | feature | Scraper `searchIterator`, `developerIterator` for >200 results. Add cursor-paginated `GET /api/apps/search/all`. |
 | B5 | `suggest` buried as `?suggest=` query param on `/apps/` | refactor | Promote to `GET /api/suggest?q=`. Keep legacy param with deprecation header. |
