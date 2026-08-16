@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Errors — Google Play API Docs</title>
+  <link rel="stylesheet" href="/docs/css/style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/docs/">gplay<span class="accent">api</span></a>
+    <nav>
+      <a href="/docs/">Home</a>
+      <a href="/docs/endpoints.html">Endpoints</a>
+      <a href="/docs/errors.html">Errors</a>
+      <a href="/docs/throttling.html">Throttling</a>
+      <a href="/docs/deployment.html">Deployment</a>
+      <a href="/docs/roadmap.html">v2 Roadmap</a>
+    </nav>
+  </header>
+
+  <main>
+    <h1>Error responses</h1>
+    <p class="lead">v2 uses RFC 9457 problem details with content type <code>application/problem+json</code>.</p>
+    <table>
+      <tr><th>Status</th><th>Code</th><th>Meaning</th></tr>
+      <tr><td>400</td><td><code>VALIDATION_ERROR</code></td><td>The request parameters are invalid.</td></tr>
+      <tr><td>404</td><td><code>HTTP_404</code></td><td>The app or requested resource was not found.</td></tr>
+      <tr><td>429</td><td><code>HTTP_429</code></td><td>The request exceeded the configured rate limit.</td></tr>
+      <tr><td>502</td><td><code>HTTP_502</code></td><td>The upstream Play Store response could not be parsed.</td></tr>
+      <tr><td>503</td><td><code>HTTP_503</code></td><td>The upstream Play Store could not be reached.</td></tr>
+      <tr><td>500</td><td><code>HTTP_500</code></td><td>An unexpected server error occurred.</td></tr>
+    </table>
+    <h2>Response shape</h2>
+<pre><code>{
+  "type": "https://api.google-play-api.dev/problems/bad-request",
+  "title": "Bad Request",
+  "status": 400,
+  "detail": "num must be between 1 and 100",
+  "code": "VALIDATION_ERROR",
+  "instance": "/v2/apps/?num=0"
+}</code></pre>
+    <p>Frozen v1 responses retain their legacy JSON shape and receive <code>Deprecation: true</code> and <code>Sunset</code> headers.</p>
+  </main>
+
+  <footer>
+    <p>Google Play API · <a href="https://github.com/srikanthlogic/google-play-api">github.com/srikanthlogic/google-play-api</a></p>
+  </footer>
+  <script src="/docs/js/main.js"></script>
+</body>
+</html>

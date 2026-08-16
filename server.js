@@ -28,6 +28,7 @@ const maxRequests = parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '100', 10);
 const skipSuccessfulRequests = process.env.RATE_LIMIT_SKIP_SUCCESSFUL_REQUESTS === 'true';
 const skipFailedRequests = process.env.RATE_LIMIT_SKIP_FAILED_REQUESTS === 'true';
 const rateLimitDisabled = process.env.RATE_LIMIT_DISABLED === 'true';
+const v1Sunset = process.env.V1_SUNSET || 'Sat, 16 Aug 2027 00:00:00 GMT';
 
 const limiter = rateLimit({
   windowMs,
@@ -81,7 +82,13 @@ app.get('/healthz', function (req, res) {
 });
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument, options));
+app.use('/api/', (req, res, next) => {
+  res.set('Deprecation', 'true');
+  res.set('Sunset', v1Sunset);
+  next();
+});
 app.use('/api/', router);
+app.use('/v2/', router);
 
 app.get('/', function (req, res) {
   res.redirect('/api-docs');

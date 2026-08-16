@@ -1,6 +1,7 @@
 import { spawn, execSync } from 'child_process';
 
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+const contractFetch = (url) => fetch(url, { headers: { Connection: 'close' } });
 
 const waitForServer = async (url, maxAttempts = 30) => {
   for (let i = 0; i < maxAttempts; i++) {
@@ -64,6 +65,24 @@ const runTests = async () => {
 
     console.log('\n=== Running GooglePlayAPI Collection ===');
     await runBruno('./bruno/GooglePlayAPI', 'Local');
+
+    console.log('\n=== Running v2 API contract checks ===');
+    const v1Response = await contractFetch('http://127.0.0.1:3000/api/apps/?num=0');
+    if (v1Response.headers.get('deprecation') !== 'true' || !v1Response.headers.get('sunset')) {
+      throw new Error('v1 responses must include Deprecation and Sunset headers');
+    }
+
+    const v2Response = await contractFetch('http://127.0.0.1:3000/v2/apps/?num=0');
+    if (v2Response.status !== 400 || !v2Response.headers.get('content-type')?.startsWith('application/problem+json')) {
+      throw new Error('v2 validation errors must use application/problem+json');
+    }
+    const v2Problem = await v2Response.json();
+    for (const field of ['type', 'title', 'status', 'detail', 'code']) {
+      if (!(field in v2Problem)) throw new Error(`v2 problem response is missing ${field}`);
+    }
+
+    const v2AppResponse = await contractFetch('http://127.0.0.1:3000/v2/apps/com.google.android.apps.translate?country=US&lang=en');
+    if (v2AppResponse.status !== 200) throw new Error(`v2 app endpoint returned ${v2AppResponse.status}`);
 
     console.log('\nAPI tests completed successfully!');
   } catch (err) {
