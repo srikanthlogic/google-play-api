@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Endpoints — Google Play API Docs</title>
+  <link rel="stylesheet" href="/docs/css/style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/docs/">gplay<span class="accent">api</span></a>
+    <nav>
+      <a href="/docs/">Home</a>
+      <a href="/docs/endpoints.html">Endpoints</a>
+      <a href="/docs/throttling.html">Throttling</a>
+      <a href="/docs/deployment.html">Deployment</a>
+      <a href="/docs/roadmap.html">v2 Roadmap</a>
+    </nav>
+  </header>
+
+  <main>
+    <h1>API Endpoints</h1>
+    <p class="lead">Base path: <code>/api/</code> · JSON responses · interactive
+      reference at <a href="/api-docs">/api-docs</a> (Swagger UI) and
+      <a href="/openapi.json">/openapi.json</a>.</p>
+
+    <h2>Apps</h2>
+    <table>
+      <tr><th>Method</th><th>Path</th><th>Description</th></tr>
+      <tr><td>GET</td><td><code>/api/apps?q=&amp;lang=&amp;country=&amp;num=&amp;fullDetail=</code></td><td>Search apps</td></tr>
+      <tr><td>GET</td><td><code>/api/apps/:appId?lang=&amp;country=</code></td><td>App details</td></tr>
+      <tr><td>GET</td><td><code>/api/apps/:appId/similar?lang=&amp;country=</code></td><td>Similar apps</td></tr>
+      <tr><td>GET</td><td><code>/api/apps/:appId/datasafety</code></td><td>Data safety labels</td></tr>
+      <tr><td>GET</td><td><code>/api/apps/:appId/permissions</code></td><td>Permissions list</td></tr>
+      <tr><td>GET</td><td><code>/api/apps/:appId/reviews?sort=&amp;num=&amp;lang=</code></td><td>App reviews</td></tr>
+    </table>
+
+    <h2>Browse</h2>
+    <table>
+      <tr><th>Method</th><th>Path</th><th>Description</th></tr>
+      <tr><td>GET</td><td><code>/api/developers/:devId?lang=&amp;country=&amp;num=</code></td><td>Apps by developer</td></tr>
+      <tr><td>GET</td><td><code>/api/developers?q=</code></td><td>Developer lookup</td></tr>
+      <tr><td>GET</td><td><code>/api/lists?category=&amp;collection=&amp;lang=&amp;country=&amp;num=</code></td><td>App lists (top/new/trending)</td></tr>
+      <tr><td>GET</td><td><code>/api/categories?lang=</code></td><td>Categories</td></tr>
+      <tr><td>GET</td><td><code>/api/collections?lang=</code></td><td>Collections</td></tr>
+    </table>
+
+    <h2>System</h2>
+    <table>
+      <tr><th>Method</th><th>Path</th><th>Description</th></tr>
+      <tr><td>GET</td><td><code>/healthz</code></td><td>Liveness probe (<code>200 {"status":"ok"}</code>)</td></tr>
+      <tr><td>GET</td><td><code>/api-docs</code></td><td>Swagger UI</td></tr>
+      <tr><td>GET</td><td><code>/docs</code></td><td>Documentation microsite</td></tr>
+    </table>
+
+    <h2>Common query params</h2>
+    <ul>
+      <li><code>lang</code> — language code, e.g. <code>en</code> (default <code>en</code>)</li>
+      <li><code>country</code> — country code, e.g. <code>IN</code>, <code>US</code> (default from <code>COUNTRY_OF_QUERY</code>)</li>
+      <li><code>num</code> — number of results (list endpoints, capped at 200)</li>
+      <li><code>fullDetail</code> — fetch full app details in search results</li>
+    </ul>
+
+    <h2>Example</h2>
+<pre><code>curl "https://gplayapiv2.fly.dev/api/apps/com.phonepe.app?country=IN"
+curl "https://gplayapiv2.fly.dev/api/apps?q=upi&num=5"
+curl "https://gplayapiv2.fly.dev/api/lists?category=GAME&collection=TOP_FREE&num=10"</code></pre>
+  </main>
+
+  <footer>
+    <p>Google Play API · <a href="https://github.com/srikanthlogic/google-play-api">github.com/srikanthlogic/google-play-api</a></p>
+  </footer>
+  <script src="/docs/js/main.js"></script>
+</body>
+</html>

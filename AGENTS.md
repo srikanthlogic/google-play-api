@@ -16,6 +16,7 @@ migrate/mradex77-scraper  →  dev  →  main
 - **`migrate/mradex77-scraper`** — active working branch for the scraper migration. All new work lands here first.
 - **`dev`** — integration branch. PRs from working branches target `dev`; CI (Bruno tests + deploy to staging) runs on push/PR.
 - **`main`** — production. Only promoted from `dev` after CI is green. Deploys to Fly.io production.
+- **`v2dev`** — v2 coordinating branch. Feature branches must merge here before v2 verification; it deploys to the separate `gplayapiv2` Fly.io app.
 
 ## Build/Lint/Test Commands
 
@@ -79,6 +80,7 @@ router.get('/endpoint', function (req, res, next) {
 ├── fly.toml               # Fly.io config (dev instance: gplayapidev)
 ├── fly.production.toml    # Fly.io production config (used by CI on main)
 ├── fly.staging.toml       # Fly.io staging config (used by CI on dev)
+├── fly.v2dev.toml         # Fly.io v2 verification config (gplayapiv2)
 ├── Dockerfile             # Container build
 └── TECHNICAL_DEBT.md      # Debt assessment + remediation plan
 ```
@@ -121,6 +123,7 @@ Copy `.env.sample` to `.env`:
 
 - **Dev instance:** `gplayapidev` — deployed manually from working branches for E2E validation. Free tier: 256 MB shared CPU, `sin` region, auto-stop/start.
 - **CI pipeline** (`.github/workflows/deploy.yml`): on push to `dev` → staging deploy; on push to `main` → production deploy. Uses `fly.staging.toml` / `fly.production.toml` respectively.
+- **v2 verification pipeline** (`.github/workflows/deploy-v2dev.yml`): on push to `v2dev` → GHCR image + `gplayapiv2` deploy. This instance sets `RATE_LIMIT_DISABLED=true` for endpoint verification only.
 - Node 22 (`.nvmrc`).
 
 ## Migration Notes (migrate/mradex77-scraper)
