@@ -18,11 +18,11 @@ const waitForServer = async (url, maxAttempts = 30) => {
   throw new Error('Server failed to start within timeout');
 };
 
-const runBruno = (collectionPath, environment) => {
+const runBruno = (collectionPath, environment, junitPath) => {
   return new Promise((resolve, reject) => {
     try {
       const result = execSync(
-        `npx @usebruno/cli run . -r --env ${environment}`,
+        `npx @usebruno/cli run . -r --env ${environment} --reporter-junit ${junitPath}`,
         {
           stdio: 'inherit',
           cwd: collectionPath
@@ -61,10 +61,10 @@ const runTests = async () => {
 
     // Run tests
     console.log('\n=== Running GPlayAPIUnitTests ===');
-    await runBruno('./bruno/GPlayAPIUnitTests', 'Local');
+    await runBruno('./bruno/GPlayAPIUnitTests', 'Local', 'junit.xml');
 
     console.log('\n=== Running GooglePlayAPI Collection ===');
-    await runBruno('./bruno/GooglePlayAPI', 'Local');
+    await runBruno('./bruno/GooglePlayAPI', 'Local', 'junit.xml');
 
     console.log('\n=== Running v2 API contract checks ===');
     const v1Response = await contractFetch('http://127.0.0.1:3000/api/apps/?num=0');

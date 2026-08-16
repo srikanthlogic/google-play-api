@@ -13,6 +13,10 @@ permissions:
   contents: read
   packages: write
 
+concurrency:
+  group: v2dev-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 env:
   IMAGE: ghcr.io/${{ github.repository }}:v2dev
 
@@ -33,6 +37,9 @@ jobs:
         run: npm ci
 
       - name: Lint
+        run: npx eslint . --format json --output-file eslint-report.json || true
+
+      - name: Lint (enforce)
         run: npx eslint .
 
       - name: Audit production dependencies
@@ -41,8 +48,49 @@ jobs:
       - name: Generate OpenAPI document
         run: npm run generateoas
 
-      - name: Run API tests
-        run: npm test
+      - name: Run API tests with coverage
+        run: npm run test:coverage
+
+      - name: Publish test results
+        if: always()
+        uses: dorny/test-reporter@v1
+        with:
+          name: Bruno API Tests
+          path: 'bruno/*/junit.xml'
+          reporter: java-junit
+          fail-on-error: false
+
+      - name: Test results summary
+        if: always()
+        run: node scripts/ci-summary.js bruno/GPlayAPIUnitTests/junit.xml bruno/GooglePlayAPI/junit.xml
+
+      - name: Coverage summary
+        if: always()
+        run: |
+          echo "## 📊 Test Coverage" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          npx c8 report --reporter=text 2>/dev/null | head -40 >> $GITHUB_STEP_SUMMARY || echo "Coverage data unavailable" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+
+      - name: Lint summary
+        if: always()
+        run: |
+          echo "## 🔍 ESLint Results" >> $GITHUB_STEP_SUMMARY
+          if [ -f eslint-report.json ]; then
+            ERRORS=$(node -e "const r=require('./eslint-report.json');console.log(r.reduce((a,f)=>a+f.errorCount,0))")
+            WARNINGS=$(node -e "const r=require('./eslint-report.json');console.log(r.reduce((a,f)=>a+f.warningCount,0))")
+            echo "| Errors | Warnings |" >> $GITHUB_STEP_SUMMARY
+            echo "|--------|----------|" >> $GITHUB_STEP_SUMMARY
+            echo "| $ERRORS | $WARNINGS |" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Upload coverage artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 14
 
   deploy:
     if: github.event_name == 'push' && github.ref == 'refs/heads/v2dev'
@@ -51,6 +99,9 @@ jobs:
     steps:
       - name: Check out v2dev
         uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
       - name: Log in to GHCR
         uses: docker/login-action@v3
@@ -65,13 +116,46 @@ jobs:
           context: .
           push: true
           tags: ${{ env.IMAGE }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
           labels: |
             org.opencontainers.image.revision=${{ github.sha }}
 
       - name: Set up Flyctl
         uses: superfly/flyctl-actions/setup-flyctl@master
 
+      - name: Cache Flyctl binary
+        uses: actions/cache@v4
+        with:
+          path: ~/.fly
+          key: ${{ runner.os }}-flyctl-v2
+          restore-keys: |
+            ${{ runner.os }}-flyctl-
+
       - name: Deploy gplayapiv2
         run: flyctl deploy --config fly.v2dev.toml --image ${{ env.IMAGE }} --remote-only
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+
+      - name: Post-deploy smoke check
+        run: |
+          sleep 10
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://gplayapiv2.fly.dev/healthz)
+          if [ "$STATUS" != "200" ]; then
+            echo "::error::Health check failed with status $STATUS"
+            exit 1
+          fi
+          echo "✅ gplayapiv2 healthy (HTTP $STATUS)"
+
+      - name: Deployment summary
+        if: always()
+        run: |
+          echo "## 🚀 Deployment: gplayapiv2" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Field | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Branch | \`v2dev\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Commit | \`${GITHUB_SHA::8}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Image | \`ghcr.io/${{ github.repository }}:v2dev\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| URL | https://gplayapiv2.fly.dev |" >> $GITHUB_STEP_SUMMARY
+          echo "| Rate limiting | **Disabled** (verification only) |" >> $GITHUB_STEP_SUMMARY
