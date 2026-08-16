@@ -10,7 +10,10 @@
     "start": "node server.js",
     "dev": "nodemon server.js",
     "prepare": "husky || true",
-    "test:coverage": "c8 --reporter=text --reporter=lcov --reporter=json-summary node test.js"
+    "test:coverage": "c8 --reporter=text --reporter=lcov --reporter=json-summary --all --include=lib --include=server.js sh -c 'node --test --experimental-test-module-mocks test/*.test.js && node test.js'",
+    "test:unit": "node --test --experimental-test-module-mocks --test-reporter=spec --test-reporter-destination=stdout --test-reporter=junit --test-reporter-destination=test/junit-unit.xml test/*.test.js",
+    "pretest": "npm run test:unit",
+    "test:unit:coverage": "c8 --reporter=text --reporter=lcov --reporter=json-summary node --test --experimental-test-module-mocks test/*.test.js"
   },
   "author": "Facundo Olano",
   "license": "ISC",

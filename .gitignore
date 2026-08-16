@@ -36,3 +36,4 @@ openapi/swagger.json
 # CI test artifacts
 bruno/*/junit.xml
 eslint-report.json
+test/junit-unit.xml
