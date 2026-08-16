@@ -112,6 +112,22 @@ app.use((err, req, res, _next) => {
   res.json(problemDetails(err, req, status));
 });
 
-app.listen(port, () => {
+const server = app.listen(port, () => {
   logger.info(`Server started on port ${port}`);
 });
+
+const gracefulShutdown = (signal) => {
+  logger.info(`${signal} received, shutting down gracefully`);
+  server.close(() => {
+    logger.info('Server closed');
+    process.exit(0);
+  });
+  // Force exit after 5 seconds if connections don't close
+  setTimeout(() => {
+    logger.warn('Forcing shutdown after timeout');
+    process.exit(0);
+  }, 5000);
+};
+
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));

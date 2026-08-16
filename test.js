@@ -99,10 +99,21 @@ const runTests = async () => {
     console.error('Test execution error:', err);
     process.exitCode = 1;
   } finally {
-    // Clean up: kill the server
+    // Clean up: kill the server and wait for it to exit so coverage is flushed
     if (serverProcess) {
       console.log('Shutting down server...');
-      serverProcess.kill('SIGTERM');
+      await new Promise((resolve) => {
+        const timeout = setTimeout(() => {
+          serverProcess.kill('SIGKILL');
+          resolve();
+        }, 6000);
+        serverProcess.on('exit', () => {
+          clearTimeout(timeout);
+          resolve();
+        });
+        serverProcess.kill('SIGTERM');
+      });
+      console.log('Server shut down.');
     }
   }
 };
