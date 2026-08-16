@@ -38,6 +38,9 @@ jobs:
       - name: Audit production dependencies
         run: npm audit --omit=dev --audit-level=high
 
+      - name: Generate OpenAPI document
+        run: npm run generateoas
+
       - name: Run API tests
         run: npm test
 
