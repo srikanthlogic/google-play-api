@@ -33,3 +33,6 @@ build/
 newman
 
 openapi/swagger.json
+# CI test artifacts
+bruno/*/junit.xml
+eslint-report.json
