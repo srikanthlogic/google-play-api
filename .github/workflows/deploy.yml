@@ -14,10 +14,10 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Cache Node.js dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.npm
           key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
@@ -25,7 +25,7 @@ jobs:
             ${{ runner.os }}-npm-
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: 22
 
@@ -42,7 +42,7 @@ jobs:
         run: npm test
 
       - name: Upload HTML Report
-        uses: actions/upload-artifact@v4.3.1
+        uses: actions/upload-artifact@v7
         with:
           name: html-report
           path: newman/*.html
@@ -54,16 +54,16 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Log into GitHub Container Registry
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
       - name: Cache Docker layers
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: /tmp/.buildx-cache
           key: ${{ runner.os }}-docker-${{ hashFiles('**/Dockerfile') }}
@@ -85,7 +85,7 @@ jobs:
 
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Get FlyCtl
         uses: superfly/flyctl-actions/setup-flyctl@master
@@ -126,7 +126,7 @@ jobs:
           deployment_id: ${{ steps.deployment.outputs.deployment_id }}
 
       - name: Cache FlyCtl binary
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.fly
           key: ${{ runner.os }}-flyctl
