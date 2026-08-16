@@ -97,6 +97,13 @@ curl "http://localhost:3000/api/collections/"
 curl "http://localhost:3000/api/lists/?collection=TOP_FREE&category=PRODUCTIVITY"
 ```
 
+### Country Availability
+
+```bash
+# Check which storefronts carry an app (comma-separated ISO-2 codes, max 30)
+curl "http://localhost:3000/api/apps/com.tencent.mm/availability?countries=IN,US,GB"
+```
+
 ### Data Safety and Permissions
 
 ```bash

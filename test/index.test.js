@@ -58,7 +58,14 @@ const fake = {
     { type: 7, permissions: ['Unknown group'] }
   ],
   reviews: async () => ({ data: [makeReview()], nextPaginationToken: null }),
-  developer: async () => [makeApp()]
+  developer: async () => [makeApp()],
+  availability: async (opts) => ({
+    appId: opts.appId,
+    countries: Object.fromEntries(opts.countries.map((code, i) => [
+      code,
+      i === 0 ? { status: 'available' } : i === 1 ? { status: 'unavailable' } : { status: 'error', message: 'storefront fetch failed' }
+    ]))
+  })
 };
 
 mock.module('@mradex77/google-play-scraper', {
@@ -394,6 +401,64 @@ test('collections returns scraper collection keys', async () => {
   const { status, body } = await get('/api/collections/');
   assert.equal(status, 200);
   assert.deepEqual(body, ['TOP_SELLING', 'TOP_GROSSING']);
+});
+
+// ─── B2: country availability on /apps/:appId/availability ──────────────────
+
+test('availability forwards appId and parsed country codes to scraper', async () => {
+  let captured;
+  const originalAvailability = fake.availability;
+  fake.availability = async (opts) => { captured = opts; return { appId: opts.appId, countries: { US: { status: 'available' } } }; };
+  const { status } = await get('/api/apps/com.example.app/availability?countries=in, us ,GB');
+  assert.equal(status, 200);
+  assert.equal(captured.appId, 'com.example.app');
+  assert.deepEqual(captured.countries, ['IN', 'US', 'GB']);
+  fake.availability = originalAvailability;
+});
+
+test('availability maps statuses to available booleans and keeps error messages', async () => {
+  const { status, body } = await get('/api/apps/com.example.app/availability?countries=IN,US,DE');
+  assert.equal(status, 200);
+  assert.equal(body.appId, 'com.example.app');
+  assert.deepEqual(body.countries.IN, { available: true, status: 'available' });
+  assert.deepEqual(body.countries.US, { available: false, status: 'unavailable' });
+  assert.equal(body.countries.DE.available, false);
+  assert.equal(body.countries.DE.status, 'error');
+  assert.equal(body.countries.DE.message, 'storefront fetch failed');
+});
+
+test('availability rejects invalid country codes (v1 shape)', async () => {
+  const { status, body } = await get('/api/apps/com.example.app/availability?countries=IN,USA');
+  assert.equal(status, 400);
+  assert.equal(body.error, 'Validation failed');
+  assert.match(body.messages[0], /USA/);
+});
+
+test('availability rejects invalid country codes with problem+json on /v2', async () => {
+  const { status, headers, body } = await get('/v2/apps/com.example.app/availability?countries=ZZZ');
+  assert.equal(status, 400);
+  assert.match(headers.get('content-type'), /application\/problem\+json/);
+  assert.equal(body.status, 400);
+  assert.match(body.detail, /ZZZ/);
+});
+
+test('availability requires the countries parameter', async () => {
+  const { status, body } = await get('/api/apps/com.example.app/availability');
+  assert.equal(status, 400);
+  assert.match(body.messages[0], /countries/);
+});
+
+test('availability rejects an empty countries list', async () => {
+  const { status, body } = await get('/api/apps/com.example.app/availability?countries=,,');
+  assert.equal(status, 400);
+  assert.match(body.messages[0], /at least one/);
+});
+
+test('availability rejects more than 30 countries', async () => {
+  const many = Array.from({ length: 31 }, (_, i) => String.fromCharCode(65 + Math.floor(i / 26), 65 + (i % 26))).join(',');
+  const { status, body } = await get(`/api/apps/com.example.app/availability?countries=${many}`);
+  assert.equal(status, 400);
+  assert.match(body.messages[0], /at most 30/);
 });
 
 // ─── error handler on /v2 ────────────────────────────────────────────────────
