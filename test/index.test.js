@@ -408,3 +408,50 @@ test('v2 error handler emits problem+json', async () => {
   assert.ok(body.instance.endsWith('/v2/apps/com.missing.app'));
   fake.app = async () => makeApp();
 });
+
+// ─── B8: field selection on /apps/:appId ────────────────────────────────────
+
+test('fields projection returns only requested fields', async () => {
+  const { status, body } = await get('/api/apps/com.example.app?fields=title,score');
+  assert.equal(status, 200);
+  assert.deepEqual(Object.keys(body).sort(), ['score', 'title']);
+  assert.equal(body.title, 'Example App');
+  assert.equal(body.score, 4.5);
+});
+
+test('fields projection works on /v2', async () => {
+  const { status, body } = await get('/v2/apps/com.example.app?fields=appId,title');
+  assert.equal(status, 200);
+  assert.deepEqual(Object.keys(body).sort(), ['appId', 'title']);
+});
+
+test('fields projection is order-preserving', async () => {
+  const { body } = await get('/api/apps/com.example.app?fields=score,developer,title');
+  assert.deepEqual(Object.keys(body), ['score', 'developer', 'title']);
+});
+
+test('unknown field returns 400 with valid field list (v1)', async () => {
+  const { status, body } = await get('/api/apps/com.example.app?fields=title,nope');
+  assert.equal(status, 400);
+  assert.equal(body.error, 'Validation failed');
+  assert.match(body.messages[0], /nope/);
+  assert.match(body.messages[0], /valid fields/i);
+});
+
+test('unknown field returns problem+json on /v2', async () => {
+  const { status, headers, body } = await get('/v2/apps/com.example.app?fields=bogus');
+  assert.equal(status, 400);
+  assert.match(headers.get('content-type'), /application\/problem\+json/);
+  assert.match(body.detail, /bogus/);
+});
+
+test('whitespace and duplicates in fields are tolerated', async () => {
+  const { status, body } = await get('/api/apps/com.example.app?fields=%20title%20,,title,score');
+  assert.equal(status, 200);
+  assert.deepEqual(Object.keys(body).sort(), ['score', 'title']);
+});
+
+test('empty fields value is rejected', async () => {
+  const { status } = await get('/api/apps/com.example.app?fields=');
+  assert.equal(status, 400);
+});

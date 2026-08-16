@@ -43,7 +43,7 @@
 | B5 | `suggest` buried as `?suggest=` query param on `/apps/` | refactor | Promote to `GET /api/suggest?q=`. Keep legacy param with deprecation header. |
 | B6 | List pagination emulated via fetch-and-slice | bug-perf | `start+num` fetched then sliced; wasteful. Use scraper iterators; document 200-cap honestly. |
 | B7 | `fullDetail` on search causes errors | bug | Upstream API issue #107. Validate/limit interaction in v2. |
-| B8 | No field selection / sparse responses | feature | Upstream API issue #22 ("take only a few fields"). Add `?fields=` projection — reduces bandwidth, enables tiered pricing. |
+| B8 | ✅ Fixed — `?fields=` projection on app details | feature | Shipped as whitelist-validated projection (see lib/fields.js). Upstream API issue #22 ("take only a few fields"). |
 | B9 | No app-history / change detection | feature | Upstream #388. Requires caching layer (D1) — v2.1 candidate. |
 | B10 | OpenAPI spec generated from Postman, stale vs. Bruno | debt | Switch to hand-maintained OpenAPI 3.1 or zod→OpenAPI (scraper exports zod schemas — single source of truth). |
 | B11 | No response schema validation at API boundary | hardening | Scraper validates its output; API should validate+serialize too, so Google-side drift returns 502 with diagnostics, not malformed JSON. |

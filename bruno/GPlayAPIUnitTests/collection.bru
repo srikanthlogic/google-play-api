@@ -13,7 +13,9 @@ vars:pre-request {
 }
 
 tests {
-  test("Status code is 200", function() {
-    expect(res.getStatus()).to.equal(200);
+  const expected = Number(bru.getRequestVar("expectedResponseStatusCode") ?? 200);
+
+  test("Status code matches expectedResponseStatusCode", function() {
+    expect(res.getStatus()).to.equal(expected);
   });
 }

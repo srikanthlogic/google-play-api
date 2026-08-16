@@ -1,0 +1,42 @@
+meta {
+  name: App Details - Field Selection
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{HOST}}/api/apps/{{APP_ID}}?fields=title,score,installs
+  body: none
+  auth: none
+}
+
+params:query {
+  fields: title,score,installs
+  country: {{COUNTRY_CODE}}
+  lang: {{LANGUAGE_CODE}}
+}
+
+tests {
+  const responseData = res.getBody();
+
+  test("Status code is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("Response contains only the requested fields", function() {
+    const keys = Object.keys(responseData).sort();
+    expect(keys).to.eql(['installs', 'score', 'title']);
+  });
+
+  test("title is a non-empty string", function() {
+    expect(responseData.title).to.be.a('string').and.to.have.lengthOf.at.least(1);
+  });
+
+  test("score is a number", function() {
+    expect(responseData.score).to.be.a('number');
+  });
+
+  test("installs is a string like \"1,000,000+\"", function() {
+    expect(responseData.installs).to.be.a('string');
+  });
+}
