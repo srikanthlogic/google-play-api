@@ -126,6 +126,44 @@ Copy `.env.sample` to `.env`:
 - **v2 verification pipeline** (`.github/workflows/deploy-v2dev.yml`): on push to `v2dev` → GHCR image + `gplayapiv2` deploy. This instance sets `RATE_LIMIT_DISABLED=true` for endpoint verification only.
 - Node 22 (`.nvmrc`).
 
+## Verification Mandates (v2)
+
+Every change to `v2dev` MUST pass this verification loop before merge. No exceptions.
+
+### Pre-merge gate (local + CI)
+
+1. **Lint clean:** `npx eslint .` exits 0. No warnings tolerated in changed files.
+2. **Dependency audit:** `npm audit --omit=dev --audit-level=high` exits 0. New high/critical vulns block merge.
+3. **Unit + API suite:** `npm test` exits 0. This runs the full Bruno E2E (unit collection + full API collection) plus the v2 contract tests.
+4. **OpenAPI generation:** `npm run generateoas` exits 0 and produces a valid spec. The generated `openapi/swagger.json` must be committed if it changes.
+5. **Schema validation:** Every new/changed endpoint must have a zod response schema in `lib/schemas/` and a contract test asserting the schema holds against live scraper output.
+
+### CI pipeline (`.github/workflows/deploy-v2dev.yml`)
+
+- **`validate` job** runs on every PR to `v2dev`: lint → audit → generateoas → full test suite → JUnit report → GH Actions step summary. Merge is blocked until `validate` is green.
+- **`deploy` job** runs only on push to `v2dev` after `validate` passes: builds GHCR image → deploys to `gplayapiv2` Fly app → post-deploy smoke checks (`/healthz`, `/docs/`, one v2 endpoint).
+- **Test reporting:** JUnit XML is emitted and parsed into the step summary. Failures must show the failing assertion, not just a red X.
+- **Caching:** npm dependencies are cached by `package-lock.json` hash. Cache misses must be investigated, not silently accepted.
+
+### Post-deploy verification (live)
+
+After every `v2dev` deploy, verify against `https://gplayapiv2.fly.dev`:
+
+| Check | Expected |
+|-------|----------|
+| `GET /healthz` | 200, `{"status":"ok"}` |
+| `GET /docs/` | 200, HTML microsite |
+| `GET /v2/apps/<known-app>?country=US&lang=en` | 200, v2 envelope with `data` key |
+| Error contract | 4xx returns `application/problem+json` with `type`, `title`, `status`, `detail` |
+| v1 compat | `/api/` endpoints still return legacy shape |
+
+### Quality bar
+
+- **No silent skips.** If a test is flaky due to upstream scraper instability, mark it explicitly with a comment and a tracking issue — never delete or `skip` without an issue link.
+- **Atomic issues.** Each PR addresses exactly one issue number. The PR title must contain the issue number (e.g. `B10: OpenAPI 3.1 from zod schemas (#112)`).
+- **Issue hygiene.** Close the issue only after the deploy is verified live. Reference the run ID and the live URL in the closing comment.
+- **Docs ship with code.** Any new env var, endpoint, or behavior change must update `/docs` microsite content in the same PR.
+
 ## Migration Notes (migrate/mradex77-scraper)
 
 - `gplay.list()` no longer supports `start` offset; pagination is emulated by fetching `start + num` and slicing.
