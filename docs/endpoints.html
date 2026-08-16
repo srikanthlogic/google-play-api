@@ -32,7 +32,7 @@
     <table>
       <tr><th>Method</th><th>Path</th><th>Description</th></tr>
       <tr><td>GET</td><td><code>/api/apps?q=&amp;lang=&amp;country=&amp;num=&amp;fullDetail=</code></td><td>Search apps</td></tr>
-      <tr><td>GET</td><td><code>/api/apps/:appId?lang=&amp;country=</code></td><td>App details</td></tr>
+      <tr><td>GET</td><td><code>/api/apps/:appId?lang=&amp;country=&amp;fields=</code></td><td>App details</td></tr>
       <tr><td>GET</td><td><code>/api/apps/:appId/similar?lang=&amp;country=</code></td><td>Similar apps</td></tr>
       <tr><td>GET</td><td><code>/api/apps/:appId/datasafety</code></td><td>Data safety labels</td></tr>
       <tr><td>GET</td><td><code>/api/apps/:appId/permissions</code></td><td>Permissions list</td></tr>
@@ -63,7 +63,7 @@
       <li><code>lang</code> — language code, e.g. <code>en</code> (default <code>en</code>)</li>
       <li><code>country</code> — country code, e.g. <code>IN</code>, <code>US</code> (default from <code>COUNTRY_OF_QUERY</code>)</li>
       <li><code>num</code> — number of results (list endpoints, capped at 200)</li>
-      <li><code>fullDetail</code> — fetch full app details in search results</li>
+      <li><code>fullDetail</code> — fetch full app details in search results</li>      <li><code>fields</code> — comma-separated projection for app details, e.g. <code>?fields=title,score,installs</code>. Unknown fields return <code>400</code> with the full whitelist. <strong>Field-selection is not a data-minimization feature</strong> — the server still fetches the full upstream payload.</li>
     </ul>
 
     <h2>Example</h2>

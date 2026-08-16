@@ -66,6 +66,9 @@ curl "http://localhost:3000/api/apps/com.facebook.katana"
 
 # Get similar apps
 curl "http://localhost:3000/api/apps/com.facebook.katana/similar"
+
+# Sparse projection — only requested fields come back (400 on unknown field)
+curl "http://localhost:3000/api/apps/com.facebook.katana?fields=title,score,installs"
 ```
 
 ### Reviews and Ratings

@@ -1,0 +1,35 @@
+meta {
+  name: App Details - Field Selection - Unknown Field
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{HOST}}/api/apps/{{APP_ID}}?fields=title,notARealField
+  body: none
+  auth: none
+}
+
+params:query {
+  ~country: {{COUNTRY_CODE}}
+  ~lang: {{LANGUAGE_CODE}}
+  fields: title,notARealField
+}
+
+vars:pre-request {
+  expectedResponseStatusCode: 400
+}
+
+tests {
+  const responseData = res.getBody();
+
+  test("Status code is 400", function() {
+    expect(res.getStatus()).to.equal(400);
+  });
+
+  test("Error message lists valid fields", function() {
+    const text = JSON.stringify(responseData);
+    expect(text).to.include("title");
+    expect(text).to.include("score");
+  });
+}
