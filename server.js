@@ -8,6 +8,7 @@ import morgan from 'morgan';
 import cors from 'cors';
 import rateLimit from 'express-rate-limit';
 import logger from './lib/logger.js';
+import { getErrorStatusCode, problemDetails } from './lib/errors.js';
 
 const app = Express();
 const port = process.env.PORT || 3000;
@@ -101,14 +102,14 @@ app.use((req, res, next) => {
 });
 
 app.use((err, req, res, _next) => {
-  logger.error({ error: err.message, stack: err.stack }, 'Request error');
-  res.status(err.status || 500);
-  res.json({
-    error: {
-      message: err.message,
-      ...(process.env.NODE_ENV === 'development' ? { stack: err.stack } : {})
-    }
-  });
+  const status = getErrorStatusCode(err);
+  logger.error({ error: err.message, stack: err.stack, code: err.code, status }, 'Request error');
+  if (err.issues) {
+    logger.error({ schemaIssues: err.issues }, 'Schema validation failure');
+  }
+  res.status(status);
+  res.setHeader('Content-Type', 'application/problem+json');
+  res.json(problemDetails(err, req, status));
 });
 
 app.listen(port, () => {
