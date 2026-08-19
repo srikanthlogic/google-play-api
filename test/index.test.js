@@ -405,6 +405,38 @@ test('lists forwards category/collection to scraper list()', async () => {
   assert.equal(body.results.length, 1);
   fake.list = async (opts) => Array.from({ length: opts.num || 60 }, (_, i) => makeApp(`com.example.app${i}`));
 });
+test('lists paginates with start/num slicing and prev/next links', async () => {
+  let captured;
+  fake.list = async (opts) => { captured = opts; return Array.from({ length: opts.num }, (_, i) => makeApp(`com.example.app${i}`)); };
+  const { status, body } = await get('/api/lists/?category=GAME&collection=TOP_SELLING&num=10&start=20');
+  assert.equal(status, 200);
+  assert.equal(captured.num, 30); // fetches start + num, no native offset
+  assert.equal(body.results.length, 10);
+  assert.equal(body.results[0].appId, 'com.example.app20');
+  assert.match(body.prev, /start=10/);
+  assert.match(body.next, /start=30/);
+  fake.list = async (opts) => Array.from({ length: opts.num || 60 }, (_, i) => makeApp(`com.example.app${i}`));
+});
+
+test('lists omits next link at the end of the capped range', async () => {
+  fake.list = async (opts) => Array.from({ length: opts.num }, (_, i) => makeApp(`com.example.app${i}`));
+  const { status, body } = await get('/api/lists/?category=GAME&collection=TOP_SELLING&num=10&start=195');
+  assert.equal(status, 200);
+  assert.equal(body.results.length, 5); // only 200 - 195 apps remain
+  assert.ok(body.prev);
+  assert.equal(body.next, undefined);
+  fake.list = async (opts) => Array.from({ length: opts.num || 60 }, (_, i) => makeApp(`com.example.app${i}`));
+});
+
+test('app list omits next link when a full last page reaches exactly 200', async () => {
+  fake.list = async (opts) => Array.from({ length: opts.num }, (_, i) => makeApp(`com.example.app${i}`));
+  const { status, body } = await get('/api/apps/?num=10&start=190');
+  assert.equal(status, 200);
+  assert.equal(body.results.length, 10);
+  assert.match(body.prev, /start=180/);
+  assert.equal(body.next, undefined); // start=200 would be an empty page
+  fake.list = async (opts) => Array.from({ length: opts.num || 60 }, (_, i) => makeApp(`com.example.app${i}`));
+});
 
 // ─── /categories/ and /collections/ ──────────────────────────────────────────
 
