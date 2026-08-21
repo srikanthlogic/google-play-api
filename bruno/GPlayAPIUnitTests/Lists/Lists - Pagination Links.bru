@@ -1,0 +1,33 @@
+meta {
+  name: Lists - Pagination Links
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{HOST}}/api/lists/?category=GAME&collection=TOP_FREE&num=10&start=10
+  body: none
+  auth: none
+}
+
+tests {
+  const responseData = res.getBody();
+
+  test("Status code is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("Returns at most one page of results", function() {
+    expect(responseData.results.length).to.be.at.most(10);
+    expect(responseData.results.length).to.be.at.least(1);
+  });
+
+  test("Page starts at the requested offset", function() {
+    expect(responseData.results[0].appId).to.exist;
+  });
+
+  test("prev and next links present mid-range", function() {
+    expect(responseData.prev).to.include("start=0");
+    expect(responseData.next).to.include("start=20");
+  });
+}
