@@ -107,9 +107,13 @@ app.use((err, req, res, _next) => {
   if (err.issues) {
     logger.error({ schemaIssues: err.issues }, 'Schema validation failure');
   }
+  const problem = problemDetails(err, req, status);
   res.status(status);
   res.setHeader('Content-Type', 'application/problem+json');
-  res.json(problemDetails(err, req, status));
+  if (problem.retryAfter !== undefined) {
+    res.setHeader('Retry-After', problem.retryAfter);
+  }
+  res.json(problem);
 });
 
 const server = app.listen(port, () => {

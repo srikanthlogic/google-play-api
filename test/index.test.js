@@ -4,9 +4,13 @@ import { test, before, after, mock } from 'node:test';
 import assert from 'node:assert/strict';
 import Express from 'express';
 import { DEFAULT_COUNTRY, DEFAULT_LANG, SORT_HELPFUL, SORT_RATED, SORT_NEWEST } from '../lib/constants.js';
+import { config as resilienceConfig } from '../lib/resilience.js';
 
 // Silence pino-pretty transport in the logger under test
 process.env.NODE_ENV = 'production';
+
+// C8: keep the upstream timeout budget tiny so timeout tests run fast.
+process.env.UPSTREAM_TIMEOUT_MS = '150';
 
 // ─── Fixtures ────────────────────────────────────────────────────────────────
 
@@ -681,4 +685,26 @@ test('whitespace and duplicates in fields are tolerated', async () => {
 test('empty fields value is rejected', async () => {
   const { status } = await get('/api/apps/com.example.app?fields=');
   assert.equal(status, 400);
+});
+
+// ─── C8: upstream timeout budget ─────────────────────────────────────────────
+
+test('C8: slow upstream returns 504 problem+json with Retry-After on /v2', async () => {
+  fake.app = () => new Promise(() => {}); // never resolves
+  const { status, headers, body } = await get('/v2/apps/com.example.app');
+  assert.equal(status, 504);
+  assert.equal(headers.get('content-type').split(';')[0], 'application/problem+json');
+  assert.equal(headers.get('retry-after'), String(resilienceConfig.timeoutRetryAfterSeconds));
+  assert.equal(body.status, 504);
+  assert.ok(body.type.endsWith('/problems/upstream-timeout'));
+  fake.app = async () => makeApp();
+});
+
+test('C8: slow upstream returns 504 legacy shape on /api', async () => {
+  fake.app = () => new Promise(() => {});
+  const { status, headers, body } = await get('/api/apps/com.example.app');
+  assert.equal(status, 504);
+  assert.equal(headers.get('retry-after'), String(resilienceConfig.timeoutRetryAfterSeconds));
+  assert.equal(body.error, 'Gateway Timeout');
+  fake.app = async () => makeApp();
 });
