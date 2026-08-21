@@ -77,6 +77,35 @@ Retry-After: 37
   }
 }</code></pre>
 
+    <h2>Upstream timeout budget</h2>
+    <p>Every upstream scraper call runs under a timeout budget so a slow
+      Google Play response cannot hold a worker hostage. When the budget is
+      exceeded the API responds with <code>504 Gateway Timeout</code> and a
+      <code>Retry-After</code> header.</p>
+    <table>
+      <tr><th>Variable</th><th>Default</th><th>Description</th></tr>
+      <tr>
+        <td><code>UPSTREAM_TIMEOUT_MS</code></td>
+        <td><code>15000</code> (15 s)</td>
+        <td>Per-call timeout budget for every upstream scraper call.</td>
+      </tr>
+      <tr>
+        <td><code>UPSTREAM_TIMEOUT_RETRY_AFTER</code></td>
+        <td><code>5</code></td>
+        <td>Seconds advertised in the <code>Retry-After</code> header on 504 responses.</td>
+      </tr>
+    </table>
+<pre><code>HTTP/1.1 504 Gateway Timeout
+Retry-After: 5
+Content-Type: application/problem+json
+
+{
+  "type": "https://api.google-play-api.dev/problems/upstream-timeout",
+  "title": "Gateway Timeout",
+  "status": 504,
+  "detail": "The upstream service did not respond within the timeout budget"
+}</code></pre>
+
     <h2>Operational notes</h2>
     <ul>
       <li>Limits are per-IP. Behind the Fly.io proxy the app trusts the proxy
