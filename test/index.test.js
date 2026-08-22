@@ -694,6 +694,44 @@ test('empty fields value is rejected', async () => {
   assert.equal(status, 400);
 });
 
+// ─── C2: request coalescing through the router ───────────────────────────────
+
+test('C2: concurrent identical app requests trigger one scraper call', async () => {
+  let calls = 0;
+  fake.app = () => new Promise((resolve) => {
+    calls += 1;
+    setTimeout(() => resolve(makeApp()), 30);
+  });
+  const [r1, r2, r3] = await Promise.all([
+    get('/v2/apps/com.example.coalesce'),
+    get('/v2/apps/com.example.coalesce'),
+    get('/v2/apps/com.example.coalesce')
+  ]);
+  assert.equal(calls, 1);
+  assert.equal(r1.status, 200);
+  assert.equal(r1.body.appId, 'com.example.app');
+  assert.equal(r1.headers.get('x-cache'), 'MISS');
+  assert.equal(r2.headers.get('x-cache'), 'MISS');
+  assert.equal(r3.headers.get('x-cache'), 'MISS');
+  fake.app = async () => makeApp();
+});
+
+test('C2: joined flight responses carry distinct cloned bodies', async () => {
+  let calls = 0;
+  fake.app = () => new Promise((resolve) => {
+    calls += 1;
+    setTimeout(() => resolve(makeApp()), 30);
+  });
+  const [a, b] = await Promise.all([
+    get('/v2/apps/com.example.clonecheck'),
+    get('/v2/apps/com.example.clonecheck')
+  ]);
+  assert.equal(calls, 1);
+  assert.deepEqual(a.body, b.body);
+  assert.notEqual(a.body, b.body);
+  fake.app = async () => makeApp();
+});
+
 // ─── C8: upstream timeout budget ─────────────────────────────────────────────
 
 test('C8: slow upstream returns 504 problem+json with Retry-After on /v2', async () => {

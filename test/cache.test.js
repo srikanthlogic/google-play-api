@@ -156,3 +156,54 @@ test('stats count hits and misses across calls', async () => {
   assert.equal(cacheStats.misses >= 1, true);
   assert.equal(cacheStats.hits >= 2, true);
 });
+
+// ─── C2: request coalescing ──────────────────────────────────────────────────
+
+test('C2: concurrent identical calls share one upstream fetch', async () => {
+  let calls = 0;
+  const fetcher = () => new Promise((resolve) => {
+    calls += 1;
+    setTimeout(() => resolve({ value: calls }), 25);
+  });
+  const [a, b, c] = await Promise.all([
+    cachedCall('app', [{ appId: 'com.coalesce' }], fetcher),
+    cachedCall('app', [{ appId: 'com.coalesce' }], fetcher),
+    cachedCall('app', [{ appId: 'com.coalesce' }], fetcher)
+  ]);
+  assert.equal(calls, 1);
+  assert.deepEqual(a, { value: 1 });
+  assert.deepEqual(b, { value: 1 });
+  assert.deepEqual(c, { value: 1 });
+  resetCache();
+});
+
+test('C2: flight failure clears so next caller retries upstream', async () => {
+  let calls = 0;
+  const flaky = () => {
+    calls += 1;
+    if (calls === 1) return Promise.reject(new Error('boom'));
+    return Promise.resolve({ ok: true });
+  };
+  await assert.rejects(() => cachedCall('app', [{ appId: 'com.flaky' }], flaky));
+  const recovered = await cachedCall('app', [{ appId: 'com.flaky' }], flaky);
+  assert.deepEqual(recovered, { ok: true });
+  assert.equal(calls, 2);
+});
+
+test('C2: COALESCE_DISABLED=true lets every call through', async () => {
+  process.env.COALESCE_DISABLED = 'true';
+  try {
+    let calls = 0;
+    const fetcher = () => new Promise((resolve) => {
+      calls += 1;
+      setTimeout(() => resolve({ n: calls }), 20);
+    });
+    await Promise.all([
+      cachedCall('app', [{ appId: 'com.nocoalesce' }], fetcher),
+      cachedCall('app', [{ appId: 'com.nocoalesce' }], fetcher)
+    ]);
+    assert.equal(calls, 2);
+  } finally {
+    delete process.env.COALESCE_DISABLED;
+  }
+});
