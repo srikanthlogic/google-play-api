@@ -1,16 +1,21 @@
 'use strict';
 
-import { test, before, after, mock } from 'node:test';
+import { test, before, beforeEach, after, mock } from 'node:test';
 import assert from 'node:assert/strict';
 import Express from 'express';
 import { DEFAULT_COUNTRY, DEFAULT_LANG, SORT_HELPFUL, SORT_RATED, SORT_NEWEST } from '../lib/constants.js';
 import { config as resilienceConfig } from '../lib/resilience.js';
+import { resetCache } from '../lib/cache.js';
 
 // Silence pino-pretty transport in the logger under test
 process.env.NODE_ENV = 'production';
 
 // C8: keep the upstream timeout budget tiny so timeout tests run fast.
 process.env.UPSTREAM_TIMEOUT_MS = '150';
+
+// C1: reset the response cache between tests so scraper fakes swapped in
+// by individual tests are actually exercised.
+beforeEach(() => resetCache());
 
 // ─── Fixtures ────────────────────────────────────────────────────────────────
 
@@ -358,10 +363,12 @@ test('reviews with userdata=true&replies=true keeps everything but _url', async 
 test('reviews maps sort names to scraper sort constants', async () => {
   const captured = [];
   fake.reviews = async (opts) => { captured.push(opts.sort); return { data: [makeReview()], nextPaginationToken: null }; };
+  // Distinct appIds so C1 response-cache keys differ (newest == default sort
+  // would otherwise be one identical upstream call served twice from cache).
   await get('/api/apps/com.example.app/reviews?sort=helpful');
-  await get('/api/apps/com.example.app/reviews?sort=rated');
-  await get('/api/apps/com.example.app/reviews?sort=newest');
-  await get('/api/apps/com.example.app/reviews');
+  await get('/api/apps/com.example.app2/reviews?sort=rated');
+  await get('/api/apps/com.example.app3/reviews?sort=newest');
+  await get('/api/apps/com.example.app4/reviews');
   assert.deepEqual(captured, [SORT_HELPFUL, SORT_RATED, SORT_NEWEST, SORT_NEWEST]);
   fake.reviews = async () => ({ data: [makeReview()], nextPaginationToken: null });
 });
@@ -706,5 +713,24 @@ test('C8: slow upstream returns 504 legacy shape on /api', async () => {
   assert.equal(status, 504);
   assert.equal(headers.get('retry-after'), String(resilienceConfig.timeoutRetryAfterSeconds));
   assert.equal(body.error, 'Gateway Timeout');
+  fake.app = async () => makeApp();
+});
+
+// ─── C1: response cache ──────────────────────────────────────────────────────
+
+test('C1: second identical request within TTL is served from cache (X-Cache: HIT, one upstream call)', async () => {
+  let calls = 0;
+  fake.app = async () => { calls += 1; return makeApp(); };
+  const first = await get('/v2/apps/com.example.cache?country=IN');
+  assert.equal(first.status, 200);
+  assert.equal(first.headers.get('x-cache'), 'MISS');
+  const second = await get('/v2/apps/com.example.cache?country=IN');
+  assert.equal(second.status, 200);
+  assert.equal(second.headers.get('x-cache'), 'HIT');
+  assert.deepEqual(second.body, first.body);
+  assert.equal(calls, 1);
+  // Different country => different cache key => upstream called again.
+  await get('/v2/apps/com.example.cache?country=US');
+  assert.equal(calls, 2);
   fake.app = async () => makeApp();
 });
