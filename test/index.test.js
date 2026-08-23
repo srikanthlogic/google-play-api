@@ -775,3 +775,32 @@ test('C1: second identical request within TTL is served from cache (X-Cache: HIT
   assert.equal(calls, 2);
   fake.app = async () => makeApp();
 });
+
+// ─── C5: /v2/health wiring ───────────────────────────────────────────────────
+
+test('C5: GET /v2/health returns instant snapshot without probe', async () => {
+  const { status, body } = await get('/v2/health');
+  assert.equal(status, 200);
+  assert.equal(body.status, 'ok');
+  assert.equal(typeof body.uptimeSec, 'number');
+  assert.ok(body.cache && typeof body.cache === 'object');
+  assert.ok(body.breaker && typeof body.breaker === 'object');
+  assert.ok(Array.isArray(body.recentEvents));
+  assert.equal(body.probe, undefined);
+});
+
+test('C5: GET /v2/health?probe=true performs live upstream probe', async () => {
+  fake.app = async () => makeApp();
+  const { status, body } = await get('/v2/health?probe=true');
+  assert.equal(status, 200);
+  assert.equal(body.status, 'ok');
+  assert.deepEqual(body.probe, { ok: true });
+  fake.app = async () => makeApp();
+});
+
+test('C5: GET /v2/health?probe=banana is rejected with problem+json', async () => {
+  const { status, headers, body } = await get('/v2/health?probe=banana');
+  assert.equal(status, 400);
+  assert.match(headers.get('content-type') || '', /application\/problem\+json/);
+  assert.equal(body.status, 400);
+});
