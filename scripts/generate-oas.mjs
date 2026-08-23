@@ -26,7 +26,9 @@ import {
   BatchSettledSchema,
   StringArraySchema,
   IteratorPageSchema,
-  HealthReportSchema
+  HealthReportSchema,
+  HistoryListSchema,
+  ChangesReportSchema
 } from '../lib/schemas.js';
 import { z } from 'zod';
 
@@ -75,6 +77,8 @@ const RESPONSES = {
   StringArray: StringArraySchema,
   IteratorPageApp: IteratorPageSchema(AppSchema),
   HealthReport: HealthReportSchema,
+  HistoryList: HistoryListSchema,
+  ChangesReport: ChangesReportSchema,
   Problem: ProblemSchema,
   LegacyError: z.object({ error: z.string(), message: z.string(), url: z.string().optional() }),
   DevHelp: z.object({ message: z.string(), example: z.string() })
@@ -163,6 +167,12 @@ const META = {
   },
   '/health': {
     get: { summary: 'Integrity snapshot: cache/coalesce/breaker/retry/egress stats', tags: ['health'], ok: 'HealthReport', queryParams: ['probe'] }
+  },
+  '/apps/:appId/history': {
+    get: { summary: 'Snapshot timeline for an app (B9 change detection)', tags: ['history'], ok: 'HistoryList', pathParams: ['appId'] }
+  },
+  '/apps/:appId/changes': {
+    get: { summary: 'Field-level changes between snapshots since a date', tags: ['history'], ok: 'ChangesReport', pathParams: ['appId'], queryParams: ['since'] }
   }
 };
 
