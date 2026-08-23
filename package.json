@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "test": "node test.js",
-    "generateoas": "p2o ./PostmanCollections/GooglePlayAPI.postman_collection.json -o ./openapi/options.json -f ./openapi/swagger.json",
+    "generateoas": "node scripts/generate-oas.mjs",
     "start": "node server.js",
     "dev": "nodemon server.js",
     "prepare": "husky || true",
