@@ -4,14 +4,17 @@ import { test, before, beforeEach, after, mock } from 'node:test';
 import assert from 'node:assert/strict';
 import Express from 'express';
 import { DEFAULT_COUNTRY, DEFAULT_LANG, SORT_HELPFUL, SORT_RATED, SORT_NEWEST } from '../lib/constants.js';
-import { config as resilienceConfig } from '../lib/resilience.js';
 import { resetCache } from '../lib/cache.js';
 
 // Silence pino-pretty transport in the logger under test
 process.env.NODE_ENV = 'production';
 
 // C8: keep the upstream timeout budget tiny so timeout tests run fast.
+// Imported AFTER the env assignment so config.timeoutMs picks up 150ms,
+// not the 15s default (static imports would hoist above these lines).
 process.env.UPSTREAM_TIMEOUT_MS = '150';
+
+const { config: resilienceConfig } = await import('../lib/resilience.js');
 
 // C1: reset the response cache between tests so scraper fakes swapped in
 // by individual tests are actually exercised.
