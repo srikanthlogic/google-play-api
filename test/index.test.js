@@ -2,6 +2,9 @@
 
 import { test, before, beforeEach, after, mock } from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 import Express from 'express';
 import { DEFAULT_COUNTRY, DEFAULT_LANG, SORT_HELPFUL, SORT_RATED, SORT_NEWEST } from '../lib/constants.js';
 import { resetCache } from '../lib/cache.js';
@@ -18,7 +21,10 @@ const { config: resilienceConfig } = await import('../lib/resilience.js');
 
 // C1: reset the response cache between tests so scraper fakes swapped in
 // by individual tests are actually exercised.
-beforeEach(() => resetCache());
+beforeEach(() => {
+  resetCache();
+  process.env.HISTORY_DIR = fs.mkdtempSync(path.join(os.tmpdir(), 'b9-index-'));
+});
 
 // ─── Fixtures ────────────────────────────────────────────────────────────────
 
