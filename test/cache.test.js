@@ -90,7 +90,7 @@ test('CACHE_DISABLED=true bypasses the cache entirely', async () => {
   await cachedCall('app', args, fetcher);
   await cachedCall('app', args, fetcher);
   assert.equal(calls, 2);
-  assert.deepEqual(cacheStats, { hits: 0, misses: 0 });
+  assert.deepEqual(cacheStats, { hits: 0, misses: 0, staleServes: 0 });
 });
 
 test('non-cacheable functions pass through uncached', async () => {
@@ -100,7 +100,7 @@ test('non-cacheable functions pass through uncached', async () => {
   await cachedCall('memoPad', [{}], fetcher);
   await cachedCall('memoPad', [{}], fetcher);
   assert.equal(calls, 2);
-  assert.deepEqual(cacheStats, { hits: 0, misses: 0 });
+  assert.deepEqual(cacheStats, { hits: 0, misses: 0, staleServes: 0 });
 });
 
 test('cached values are deep clones — handler mutations never poison the cache', async () => {
