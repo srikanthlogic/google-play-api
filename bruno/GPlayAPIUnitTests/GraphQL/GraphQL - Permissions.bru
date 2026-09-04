@@ -1,0 +1,52 @@
+meta {
+  name: GraphQL - Permissions
+  type: http
+  seq: 11
+}
+
+post {
+  url: {{HOST}}/v2/graphql
+  body: graphql
+  auth: none
+}
+
+headers {
+  accept: application/json
+}
+
+body:graphql {
+  query Permissions($id: ID!) {
+    permissions(appId: $id) {
+      type
+      permissions
+    }
+  }
+}
+
+body:graphql:vars {
+  {
+    "id": "{{APP_ID}}"
+  }
+}
+
+tests {
+  const responseData = res.getBody();
+
+  test("Status code is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("No GraphQL errors", function() {
+    expect(responseData.errors).to.be.undefined;
+  });
+
+  test("permissions is an array of groups", function() {
+    expect(responseData.data.permissions).to.be.an("array");
+  });
+
+  test("type is mapped to a string group name", function() {
+    responseData.data.permissions.forEach(function(group) {
+      expect(group.type).to.be.a("string");
+    });
+  });
+}

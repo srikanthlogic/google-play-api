@@ -1,0 +1,49 @@
+meta {
+  name: GraphQL - Similar
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{HOST}}/v2/graphql
+  body: graphql
+  auth: none
+}
+
+headers {
+  accept: application/json
+}
+
+body:graphql {
+  query Similar($id: ID!) {
+    similar(appId: $id) {
+      appId
+      title
+    }
+  }
+}
+
+body:graphql:vars {
+  {
+    "id": "{{APP_ID}}"
+  }
+}
+
+tests {
+  const responseData = res.getBody();
+
+  test("Status code is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("No GraphQL errors", function() {
+    expect(responseData.errors).to.be.undefined;
+  });
+
+  test("similar is an array of apps", function() {
+    expect(responseData.data.similar).to.be.an("array");
+    responseData.data.similar.forEach(function(app) {
+      expect(app.appId).to.be.a("string");
+    });
+  });
+}

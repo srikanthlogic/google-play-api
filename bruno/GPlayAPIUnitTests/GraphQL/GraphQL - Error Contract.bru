@@ -1,12 +1,12 @@
 meta {
   name: GraphQL - Error Contract
   type: http
-  seq: 4
+  seq: 14
 }
 
 post {
   url: {{HOST}}/v2/graphql
-  body: json
+  body: graphql
   auth: none
 }
 
@@ -14,9 +14,11 @@ headers {
   accept: application/json
 }
 
-body:json {
+body:graphql {
   {
-    "query": "{ app(appId: \"com.example.app\", country: \"INVALID\") { appId } }"
+    app(appId: "com.example.app", country: "INVALID") {
+      appId
+    }
   }
 }
 

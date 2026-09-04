@@ -6,7 +6,7 @@ meta {
 
 post {
   url: {{HOST}}/v2/graphql
-  body: json
+  body: graphql
   auth: none
 }
 
@@ -14,9 +14,10 @@ headers {
   accept: application/json
 }
 
-body:json {
+body:graphql {
   {
-    "query": "{ categories collections }"
+    categories
+    collections
   }
 }
 

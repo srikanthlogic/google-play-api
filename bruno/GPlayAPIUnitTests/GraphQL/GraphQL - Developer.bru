@@ -1,0 +1,48 @@
+meta {
+  name: GraphQL - Developer
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{HOST}}/v2/graphql
+  body: graphql
+  auth: none
+}
+
+headers {
+  accept: application/json
+}
+
+body:graphql {
+  {
+    developer(devId: "Google LLC", num: 5) {
+      devId
+      apps {
+        appId
+        title
+      }
+    }
+  }
+}
+
+tests {
+  const responseData = res.getBody();
+
+  test("Status code is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("No GraphQL errors", function() {
+    expect(responseData.errors).to.be.undefined;
+  });
+
+  test("developer echo has apps", function() {
+    expect(responseData.data.developer.devId).to.be.a("string");
+    expect(responseData.data.developer.apps).to.be.an("array").that.is.not.empty;
+  });
+
+  test("at most num apps are returned", function() {
+    expect(responseData.data.developer.apps.length).to.be.at.most(5);
+  });
+}

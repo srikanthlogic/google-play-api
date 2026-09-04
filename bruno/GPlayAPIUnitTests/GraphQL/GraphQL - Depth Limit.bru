@@ -1,12 +1,12 @@
 meta {
   name: GraphQL - Depth Limit
   type: http
-  seq: 3
+  seq: 13
 }
 
 post {
   url: {{HOST}}/v2/graphql
-  body: json
+  body: graphql
   auth: none
 }
 
@@ -14,9 +14,11 @@ headers {
   accept: application/json
 }
 
-body:json {
+body:graphql {
   {
-    "query": "{ app(appId: \"com.example.app\") { f1 { f2 { f3 { f4 { f5 { f6 { f7 { f8 { f9 { f10 { appId } } } } } } } } } } } }"
+    app(appId: "com.example.app") {
+      f1 { f2 { f3 { f4 { f5 { f6 { f7 { f8 { f9 { f10 { appId } } } } } } } } } }
+    }
   }
 }
 

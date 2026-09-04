@@ -6,7 +6,7 @@ meta {
 
 post {
   url: {{HOST}}/v2/graphql
-  body: json
+  body: graphql
   auth: none
 }
 
@@ -14,10 +14,24 @@ headers {
   accept: application/json
 }
 
-body:json {
+body:graphql {
+  query AppDetails($id: ID!) {
+    app(appId: $id, country: "US", lang: "en") {
+      appId
+      title
+      url
+      developer {
+        devId
+      }
+      score
+      installs
+    }
+  }
+}
+
+body:graphql:vars {
   {
-    "query": "query ($id: ID!) { app(appId: $id, country: \"US\", lang: \"en\") { appId title url developer { devId } score } }",
-    "variables": { "id": "{{APP_ID}}" }
+    "id": "{{APP_ID}}"
   }
 }
 
@@ -38,6 +52,10 @@ tests {
 
   test("title is a non-empty string", function() {
     expect(responseData.data.app.title).to.be.a("string").and.to.have.lengthOf.at.least(1);
+  });
+
+  test("installs is a string like \"1,000,000+\"", function() {
+    expect(responseData.data.app.installs).to.be.a("string");
   });
 
   test("url is an absolute v2 REST deep link", function() {

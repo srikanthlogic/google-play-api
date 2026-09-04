@@ -1,0 +1,59 @@
+meta {
+  name: GraphQL - Data Safety
+  type: http
+  seq: 10
+}
+
+post {
+  url: {{HOST}}/v2/graphql
+  body: graphql
+  auth: none
+}
+
+headers {
+  accept: application/json
+}
+
+body:graphql {
+  query DataSafety($id: ID!) {
+    dataSafety(appId: $id) {
+      sharedData {
+        data
+        type
+      }
+      collectedData {
+        data
+        purpose
+      }
+      privacyPolicyUrl
+    }
+  }
+}
+
+body:graphql:vars {
+  {
+    "id": "{{APP_ID}}"
+  }
+}
+
+tests {
+  const responseData = res.getBody();
+
+  test("Status code is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("No GraphQL errors", function() {
+    expect(responseData.errors).to.be.undefined;
+  });
+
+  test("dataSafety object is present", function() {
+    expect(responseData.data.dataSafety).to.be.an("object");
+  });
+
+  test("collectedData entries have a data label", function() {
+    (responseData.data.dataSafety.collectedData ?? []).forEach(function(entry) {
+      expect(entry.data).to.be.a("string");
+    });
+  });
+}
