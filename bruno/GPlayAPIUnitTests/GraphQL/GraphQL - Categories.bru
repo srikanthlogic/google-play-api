@@ -1,0 +1,42 @@
+meta {
+  name: GraphQL - Categories
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{HOST}}/v2/graphql
+  body: json
+  auth: none
+}
+
+headers {
+  accept: application/json
+}
+
+body:json {
+  {
+    "query": "{ categories collections }"
+  }
+}
+
+tests {
+  const responseData = res.getBody();
+
+  test("Status code is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("No GraphQL errors", function() {
+    expect(responseData.errors).to.be.undefined;
+  });
+
+  test("categories is a non-empty string array", function() {
+    expect(responseData.data.categories).to.be.an("array").that.is.not.empty;
+    expect(responseData.data.categories[0]).to.be.a("string");
+  });
+
+  test("collections is a non-empty string array", function() {
+    expect(responseData.data.collections).to.be.an("array").that.is.not.empty;
+  });
+}

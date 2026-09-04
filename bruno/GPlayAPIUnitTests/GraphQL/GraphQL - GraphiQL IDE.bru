@@ -1,0 +1,27 @@
+meta {
+  name: GraphQL - GraphiQL IDE
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{HOST}}/v2/graphql
+  body: none
+  auth: none
+}
+
+headers {
+  accept: text/html
+}
+
+tests {
+  test("Status code is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("Page loads the GraphiQL IDE", function() {
+    const body = res.getBody().toString();
+    expect(body).to.include("GraphiQL");
+    expect(body).to.include("/v2/graphql");
+  });
+}

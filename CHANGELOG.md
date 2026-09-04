@@ -1,5 +1,34 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+- **GraphQL endpoint** at `POST /v2/graphql` (GraphiQL IDE served to browsers on GET)
+  - Full read parity with the v2 REST surface: `app`, `apps` (batch as an
+    `AppOk | AppError` union), `search`/`developerApps` (cursor pages),
+    `list`, `similar`, `reviews` (with the REST `userdata`/`replies`
+    privacy rules), `developer`, `suggest`, `dataSafety`, `permissions`,
+    `availability`, `categories`, `collections`
+  - Resolvers share the REST resilience stack (cache → retry → timeout →
+    breaker) via the extracted `lib/gplayClient.js`, and reuse the zod
+    contract validators for upstream-integrity monitoring
+  - Error contract mirrors RFC 9457: errors carry
+    `extensions.{httpStatus, code, type, retryAfter}`; 5xx messages redacted
+  - Query depth limit (default 10, `GRAPHQL_MAX_DEPTH`) rejects over-deep
+    documents with HTTP 400 before execution
+  - Rate limited with the same limiter as `/api/`; CORS allows POST
+- Docs microsite page `docs/graphql.html` (nav link on every page)
+- Bruno `GraphQL` folder in the unit collection (categories, app details,
+  depth limit, error contract, GraphiQL page)
+- `test/graphql.test.js`: 29 node:test cases over the endpoint (schema shape,
+  pagination, privacy rules, error taxonomy, depth limit, IDE)
+
+### Changed
+- `lib/index.js`: the resilience-wrapped `gplay` proxy moved to
+  `lib/gplayClient.js` (shared with the GraphQL resolvers); review
+  post-processing moved to `lib/reviewUtils.js`; `PERMISSION_TYPE_NAMES`
+  moved to `lib/constants.js` — no behavioral change to REST
+
 ## [1.6.1] - 2026-02-11
 
 ### Fixed
