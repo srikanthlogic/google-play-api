@@ -3,6 +3,11 @@
 
 Google Play API is a REST API wrapper originally built on top of [google-play-scraper](https://github.com/facundoolano/google-play-scraper) by [Facundoolano](https://github.com/facundoolano) to fetch metadata from [Google Play](https://en.wikipedia.org/wiki/Google_Play). This repository extends it and adds additional endpoints.
 
+The API is served under two base paths:
+
+- **`/v2/`** — the current API. Strict query-param validation, RFC 9457 `application/problem+json` errors, and responses validated against zod schemas before they are returned. **New integrations should use `/v2/`.**
+- **`/api/`** — the legacy v1 surface, same endpoints with the historical response shapes. It is deprecated: responses carry `Deprecation` and `Sunset` headers (default sunset: August 2027, configurable via `V1_SUNSET`).
+
 **Repository**: https://github.com/srikanthlogic/google-play-api
 
 **Development**: For detailed information about contributing to this project, please see our [Development Guide](DEVELOP.md).
@@ -16,6 +21,8 @@ Google Play API is a REST API wrapper originally built on top of [google-play-sc
 - **Categories & Collections**: Browse apps by category or collection (top free, trending, etc.)
 - **Data Safety & Permissions**: Access app data safety information and required permissions
 - **Similar Apps**: Discover apps similar to a specific application
+- **v2 capabilities**: Cursor-based pagination, streaming reviews export (NDJSON/CSV), app history snapshots with field-level change detection, batch details, and a live upstream health endpoint
+- **Contract-tested responses**: Every v2 response is validated against zod schemas; OpenAPI 3.1 spec is generated from those same schemas
 - **RESTful API**: Clean, consistent REST endpoints with JSON responses
 - **Interactive Documentation**: Built-in API documentation for easy exploration
 
@@ -38,6 +45,8 @@ Google Play API is a REST API wrapper originally built on top of [google-play-sc
    ```bash
    npm run generateoas
    ```
+
+   This generates `openapi/swagger.json` (OpenAPI 3.1, derived from the zod response schemas and the live router) that powers `/api-docs` and `/openapi.json`.
 
 4. Start the server:
    ```bash
@@ -137,6 +146,65 @@ curl "http://localhost:3000/api/apps/com.facebook.katana/permissions"
 curl "http://localhost:3000/api/apps/com.facebook.katana/datasafety"
 ```
 
+The examples above use the legacy `/api/` base path; every endpoint is also available under `/v2/` (see below).
+
+## v2 API
+
+The `/v2/` base path serves the same endpoint inventory as `/api/`, with these differences:
+
+- **Strict query params** — unknown query parameters return `400` instead of being ignored
+- **RFC 9457 errors** — failures return `application/problem+json` with `type`, `title`, `status`, `detail` (v1 keeps the legacy `{ error, messages }` shape); upstream timeouts return `504` with a `Retry-After` header
+- **Schema-validated responses** — responses are checked against zod schemas before being sent, so the contract is enforced at runtime
+- **Deprecation-free** — no `Deprecation`/`Sunset` headers
+
+Newer endpoints — served under both base paths, shown here on `/v2/` per the recommendation above:
+
+### Cursor-Paginated Search and Developer Apps
+
+```bash
+# Search with cursor pagination (pageSize up to 100)
+curl "http://localhost:3000/v2/apps/search?q=vpn&pageSize=20"
+# → { "results": [...], "nextToken": "..." } — pass nextToken back as ?cursor= to fetch the next page
+curl "http://localhost:3000/v2/apps/search?q=vpn&cursor=<nextToken>"
+
+# Same iteration for a developer's catalogue
+curl "http://localhost:3000/v2/developers/Wikimedia%20Foundation/apps?pageSize=20"
+```
+
+### Streaming Reviews Export
+
+```bash
+# Export reviews as NDJSON (default) or CSV, streamed while pages are fetched
+curl "http://localhost:3000/v2/apps/com.facebook.katana/reviews/export?format=csv" -o reviews.csv
+# Response carries an X-Export-Cap header with the maximum number of reviews returned
+```
+
+### App History and Change Detection
+
+```bash
+# Snapshot timeline of an app's listing metadata
+curl "http://localhost:3000/v2/apps/com.facebook.katana/history"
+
+# Field-level changes since a date
+curl "http://localhost:3000/v2/apps/com.facebook.katana/changes?since=2026-01-01"
+```
+
+### Health
+
+```bash
+# Liveness probe (root-level, no base path)
+curl "http://localhost:3000/healthz"
+
+# Upstream health snapshot; add ?probe=true for a live upstream fetch
+curl "http://localhost:3000/v2/health?probe=true"
+```
+
+### Search Suggest (v2 form)
+
+```bash
+curl "http://localhost:3000/v2/suggest?q=spot"
+```
+
 ## API Documentation
 
 For complete API documentation, including all endpoints, parameters, and response formats, visit:
@@ -146,29 +214,38 @@ For complete API documentation, including all endpoints, parameters, and respons
 
 ## Test Coverage
 
-The project uses [Bruno](https://www.usebruno.com/) for API testing with comprehensive test coverage. Bruno is a Git-friendly, open-source API client that stores API requests as plain text files.
+Testing happens at two levels:
 
-| Test Suite | Requests | Assertions | Status |
+1. **Unit tests** — `node:test` suites in `test/` covering the lib modules (schemas, retry, breaker, cache, iterators, history, error mapping, URL utils) with module mocks, no network needed.
+2. **API tests** — [Bruno](https://www.usebruno.com/) collections that run against a live server. Bruno is a Git-friendly, open-source API client that stores API requests as plain text files.
+
+| Bruno Suite | Requests | Assertions | Status |
 |------------|----------|------------|--------|
-| GPlayAPIUnitTests | 5 | 28 | ✅ All Pass |
-| GooglePlayAPI | 12 | 71 | ✅ All Pass |
-| **Total** | **17** | **99** | **✅ 100%** |
+| GPlayAPIUnitTests | 19 | 97 | ✅ All Pass |
+| GooglePlayAPI | 14 | 100 | ✅ All Pass |
+| **Total** | **33** | **197** | **✅ 100%** |
 
 ### Running Tests
 
 ```bash
-npm test
+npm test            # unit suite (pretest) + full E2E via Bruno
+npm run test:unit   # unit suite only
+npm run test:coverage
 ```
 
-This will:
-1. Start the server automatically
-2. Execute all Bruno collections
-3. Report test results
-4. Shut down the server
+`npm test` will:
+1. Run the unit test suite (`node --test`)
+2. Start the server automatically
+3. Execute all Bruno collections
+4. Report test results
+5. Shut down the server
+
+`npm run test:coverage` produces c8 coverage for `lib/` and `server.js` across both the unit and Bruno suites.
 
 ### Test Structure
 
-Tests are organized in the `bruno/` directory:
+Tests are organized in two directories:
+- `test/` — node:test unit suites for the lib modules
 - `bruno/GooglePlayAPI/` - Main API endpoint tests (Apps, Developers, Categories, Lists, Collections)
 - `bruno/GPlayAPIUnitTests/` - Unit tests for privacy features and app reviews
 - `bruno/*/environments/Local.bru` - Environment variables for local testing
