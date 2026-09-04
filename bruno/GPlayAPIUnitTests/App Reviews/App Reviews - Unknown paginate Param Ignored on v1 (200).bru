@@ -1,0 +1,28 @@
+meta {
+  name: App Reviews - Unknown paginate Param Ignored on v1 (200)
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{HOST}}/api/apps/{{APP_ID}}/reviews?num=2&paginate=false&country={{COUNTRY_CODE}}
+  body: none
+  auth: none
+}
+
+vars:pre-request {
+  expectedResponseStatusCode: 200
+}
+
+tests {
+  const responseData = res.getBody();
+
+  test("Status code is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("v1 remains lenient: unknown paginate param ignored, results returned", function() {
+    expect(responseData.results).to.exist;
+    expect(responseData.results.data).to.exist.and.to.be.an('array').and.to.have.lengthOf.at.most(2);
+  });
+}

@@ -42,7 +42,11 @@
   "code": "VALIDATION_ERROR",
   "instance": "/v2/apps/?num=0"
 }</code></pre>
+    <h2>Unknown query parameters</h2>
+    <p>On <code>/v2/</code>, passing a query parameter the endpoint does not declare returns <code>400</code> with a problem document naming the offending parameter(s). Scraper-internal flags such as <code>paginate</code> are not exposed over HTTP; use the <code>nextPaginationToken</code> cursor on <code>/v2/apps/:appId/reviews</code> or the streaming <code>/v2/apps/:appId/reviews/export</code> endpoint for deep review pulls. The deprecated <code>/api/</code> surface keeps its lenient posture (unknown parameters are ignored) until sunset.</p>
     <p>Frozen v1 responses retain their legacy JSON shape and receive <code>Deprecation: true</code> and <code>Sunset</code> headers.</p>
+    <h2>Unknown query parameters</h2>
+    <p>On <code>/v2/</code>, query parameters that an endpoint does not declare are rejected with <code>400 VALIDATION_ERROR</code> instead of being silently forwarded upstream — string query values cannot satisfy upstream schema types like booleans (<code>paginate</code> on <code>/apps/:appId/reviews</code> was the motivating case, issue <a href="https://github.com/srikanthlogic/google-play-api/issues/192">#192</a>). The frozen <code>/api/</code> v1 surface stays lenient and ignores unknown parameters for backwards compatibility.</p>
   </main>
 
   <footer>
