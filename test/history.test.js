@@ -51,6 +51,7 @@ test('B9: getChanges filters by ?since= ISO date', async () => {
   await history.snapshotApp(app({ version: '1.0.0', score: 4 }));
   const snaps = await history.getHistory('com.example.hist');
   const mid = new Date(new Date(snaps[0].at).getTime() + 1).toISOString();
+  await new Promise(r => setTimeout(r, 5));
   await history.snapshotApp(app({ version: '2.0.0', score: 4 }));
   const all = await history.getChanges('com.example.hist', null);
   assert.equal(all.length, 1);

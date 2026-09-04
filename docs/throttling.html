@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Throttling — Google Play API Docs</title>
+  <meta name="description" content="Rate limits, 429 responses, and the upstream timeout budget." />
   <link rel="stylesheet" href="/docs/css/style.css" />
 </head>
 <body>
@@ -15,7 +16,6 @@
       <a href="/docs/errors.html">Errors</a>
       <a href="/docs/throttling.html">Throttling</a>
       <a href="/docs/localization.html">Localization</a>
-      <a href="/docs/localization.html">Localization</a>
       <a href="/docs/deployment.html">Deployment</a>
       <a href="/docs/roadmap.html">v2 Roadmap</a>
     </nav>
@@ -23,14 +23,17 @@
 
   <main>
     <h1>Throttling &amp; Rate Limits</h1>
-    <p class="lead">Rate limiting is implemented with
-      <code>express-rate-limit</code>, scoped to <code>/api/</code> routes.
-      All settings are environment-configurable; there is no hardcoded limit.</p>
+    <p class="lead">
+      Rate limiting uses <code>express-rate-limit</code>, scoped to
+      <code>/api/</code> and <code>/v2/</code> routes. All settings are
+      environment-configurable; there is no hardcoded limit.
+    </p>
 
     <div class="notice">
-      <b>v2 verification instance (<code>gplayapiv2</code>):</b> throttling is
-      <b>disabled</b> (<code>RATE_LIMIT_DISABLED=true</code>) so endpoint
-      behavior can be verified without 429s. Enable it for any production use.
+      <strong>v2 verification instance (<code>gplayapiv2</code>):</strong>
+      throttling is <strong>disabled</strong>
+      (<code>RATE_LIMIT_DISABLED=true</code>) so endpoint behavior can be
+      verified without 429s. Enable it for any production use.
     </div>
 
     <h2>Environment settings</h2>
@@ -39,8 +42,7 @@
       <tr>
         <td><code>RATE_LIMIT_DISABLED</code></td>
         <td><code>false</code></td>
-        <td>Set <code>true</code> to disable rate limiting entirely.
-            Used by the <code>gplayapiv2</code> verification deployment.</td>
+        <td>Set <code>true</code> to disable rate limiting entirely. Used by the <code>gplayapiv2</code> verification deployment.</td>
       </tr>
       <tr>
         <td><code>RATE_LIMIT_WINDOW_MS</code></td>
@@ -78,10 +80,12 @@ Retry-After: 37
 }</code></pre>
 
     <h2>Upstream timeout budget</h2>
-    <p>Every upstream scraper call runs under a timeout budget so a slow
+    <p>
+      Every upstream scraper call runs under a timeout budget so a slow
       Google Play response cannot hold a worker hostage. When the budget is
       exceeded the API responds with <code>504 Gateway Timeout</code> and a
-      <code>Retry-After</code> header.</p>
+      <code>Retry-After</code> header.
+    </p>
     <table>
       <tr><th>Variable</th><th>Default</th><th>Description</th></tr>
       <tr>
@@ -108,13 +112,9 @@ Content-Type: application/problem+json
 
     <h2>Operational notes</h2>
     <ul>
-      <li>Limits are per-IP. Behind the Fly.io proxy the app trusts the proxy
-        (<code>trust proxy</code>), so the client IP is used.</li>
-      <li>The limit is global to the instance, not per-endpoint or per-key.
-        Per-key quotas are planned for the v2 SaaS tier (M3).</li>
-      <li>Disabling the limit (<code>RATE_LIMIT_DISABLED=true</code>) is only
-        for verification deployments — production instances should always
-        enable throttling to protect the upstream scraper from blocks.</li>
+      <li>Limits are per-IP. Behind the Fly.io proxy the app trusts the proxy (<code>trust proxy</code>), so the client IP is used.</li>
+      <li>The limit is global to the instance, not per-endpoint or per-key. Per-key quotas are planned for the v2 SaaS tier (M3).</li>
+      <li>Disabling the limit (<code>RATE_LIMIT_DISABLED=true</code>) is only for verification deployments — production instances should always enable throttling to protect the upstream scraper from blocks.</li>
     </ul>
   </main>
 

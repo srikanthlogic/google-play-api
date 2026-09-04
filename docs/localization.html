@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Localization — Google Play API</title>
+  <title>Localization — Google Play API Docs</title>
+  <meta name="description" content="How country and lang are resolved, validated, and passed upstream." />
   <link rel="stylesheet" href="/docs/css/style.css" />
 </head>
 <body>
@@ -24,14 +25,15 @@
     <h1>Localization: country &amp; lang</h1>
     <p class="lead">
       Every request targets a Google Play storefront. Two parameters control
-      which store and which language you see: <code>country</code> and <code>lang</code>.
+      which store and which language you see: <code>country</code> and
+      <code>lang</code>.
     </p>
 
     <h2>Single source of truth</h2>
     <p>
       Defaults are resolved in one place — the router middleware in
-      <code>lib/index.js</code> — using constants from <code>lib/constants.js</code>.
-      There is no per-route override logic.
+      <code>lib/index.js</code> — using constants from
+      <code>lib/constants.js</code>. There is no per-route override logic.
     </p>
     <table>
       <tr><th>Layer</th><th>Value</th><th>Notes</th></tr>
@@ -48,9 +50,9 @@
 
     <h2>Country / lang matrix</h2>
     <p>
-      The scraper passes <code>country</code> and <code>lang</code> directly to the
-      Play Store batchexecute endpoint. Any valid ISO pair is accepted — the API
-      does not maintain a hardcoded allowlist. Common combinations:
+      The scraper passes <code>country</code> and <code>lang</code> directly to
+      the Play Store batchexecute endpoint. Any valid ISO pair is accepted —
+      the API does not maintain a hardcoded allowlist. Common combinations:
     </p>
     <table>
       <tr><th>country</th><th>lang</th><th>Storefront</th></tr>
@@ -65,8 +67,8 @@
     </table>
     <p>
       <strong>Note:</strong> not every app is available in every storefront.
-      A valid request may still return <code>404 App not found</code> if the app
-      is geo-restricted.
+      A valid request may still return <code>404 App not found</code> if the
+      app is geo-restricted.
     </p>
 
     <h2>Examples</h2>
@@ -86,8 +88,8 @@ LANG_OF_QUERY=en</code></pre>
     <p>
       The <code>gplayapiv2</code> verification deployment sets
       <code>COUNTRY_OF_QUERY=IN</code> to match the primary audience.
-      Production (<code>main</code>) uses the code default (<code>US</code>/<code>en</code>)
-      unless overridden.
+      Production (<code>main</code>) uses the code default (<code>US</code> /
+      <code>en</code>) unless overridden.
     </p>
   </main>
 
