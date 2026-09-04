@@ -166,7 +166,7 @@ Copy `.env.sample` to `.env`:
 ## Deployment (Fly.io)
 
 - **Dev instance:** `gplayapidev` — deployed manually from working branches for E2E validation. Free tier: 256 MB shared CPU, `sin` region, auto-stop/start.
-- **CI pipeline** (`.github/workflows/deploy.yml`): on push to `dev` → staging deploy; on push to `main` → production deploy. Uses `fly.staging.toml` / `fly.production.toml` respectively.
+- **CI pipeline** (`.github/workflows/deploy.yml`): on push to `dev` → staging deploy; on push to `main` → production deploy. Uses `fly.staging.toml` / `fly.production.toml` respectively. PRs to `dev` run build + tests only — the Docker image and Fly deploy steps are gated to push/`workflow_dispatch` events, so staging never receives an unreviewed PR merge snapshot.
 - **v2 verification pipeline** (`.github/workflows/deploy-v2dev.yml`): on push to `v2dev` → GHCR image + `gplayapiv2` deploy. This instance sets `RATE_LIMIT_DISABLED=true` for endpoint verification only.
 - Node 22 (`.nvmrc`).
 
