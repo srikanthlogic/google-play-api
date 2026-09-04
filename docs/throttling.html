@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Throttling — Google Play API Docs</title>
+  <meta name="description" content="Rate limits, 429 responses, and the upstream timeout budget." />
+  <link rel="stylesheet" href="/docs/css/style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/docs/">gplay<span class="accent">api</span></a>
+    <nav>
+      <a href="/docs/">Home</a>
+      <a href="/docs/endpoints.html">Endpoints</a>
+      <a href="/docs/errors.html">Errors</a>
+      <a href="/docs/throttling.html">Throttling</a>
+      <a href="/docs/localization.html">Localization</a>
+      <a href="/docs/deployment.html">Deployment</a>
+      <a href="/docs/roadmap.html">v2 Roadmap</a>
+    </nav>
+  </header>
+
+  <main>
+    <h1>Throttling &amp; Rate Limits</h1>
+    <p class="lead">
+      Rate limiting uses <code>express-rate-limit</code>, scoped to
+      <code>/api/</code> and <code>/v2/</code> routes. All settings are
+      environment-configurable; there is no hardcoded limit.
+    </p>
+
+    <div class="notice">
+      <strong>v2 verification instance (<code>gplayapiv2</code>):</strong>
+      throttling is <strong>disabled</strong>
+      (<code>RATE_LIMIT_DISABLED=true</code>) so endpoint behavior can be
+      verified without 429s. Enable it for any production use.
+    </div>
+
+    <h2>Environment settings</h2>
+    <table>
+      <tr><th>Variable</th><th>Default</th><th>Description</th></tr>
+      <tr>
+        <td><code>RATE_LIMIT_DISABLED</code></td>
+        <td><code>false</code></td>
+        <td>Set <code>true</code> to disable rate limiting entirely. Used by the <code>gplayapiv2</code> verification deployment.</td>
+      </tr>
+      <tr>
+        <td><code>RATE_LIMIT_WINDOW_MS</code></td>
+        <td><code>900000</code> (15 min)</td>
+        <td>Length of the rate-limit window in milliseconds.</td>
+      </tr>
+      <tr>
+        <td><code>RATE_LIMIT_MAX_REQUESTS</code></td>
+        <td><code>100</code></td>
+        <td>Maximum requests allowed per window per IP.</td>
+      </tr>
+      <tr>
+        <td><code>RATE_LIMIT_SKIP_SUCCESSFUL_REQUESTS</code></td>
+        <td><code>false</code></td>
+        <td>Only count requests that returned errors.</td>
+      </tr>
+      <tr>
+        <td><code>RATE_LIMIT_SKIP_FAILED_REQUESTS</code></td>
+        <td><code>false</code></td>
+        <td>Only count requests that succeeded (2xx).</td>
+      </tr>
+    </table>
+
+    <h2>429 response</h2>
+    <p>When the limit is hit, the API responds with
+      <code>429 Too Many Requests</code>, a <code>Retry-After</code> header,
+      and a JSON body:</p>
+<pre><code>HTTP/1.1 429 Too Many Requests
+Retry-After: 37
+
+{
+  "error": {
+    "message": "Too many requests from this IP (100 requests per 15 minutes). Please try again after 37 seconds."
+  }
+}</code></pre>
+
+    <h2>Upstream timeout budget</h2>
+    <p>
+      Every upstream scraper call runs under a timeout budget so a slow
+      Google Play response cannot hold a worker hostage. When the budget is
+      exceeded the API responds with <code>504 Gateway Timeout</code> and a
+      <code>Retry-After</code> header.
+    </p>
+    <table>
+      <tr><th>Variable</th><th>Default</th><th>Description</th></tr>
+      <tr>
+        <td><code>UPSTREAM_TIMEOUT_MS</code></td>
+        <td><code>15000</code> (15 s)</td>
+        <td>Per-call timeout budget for every upstream scraper call.</td>
+      </tr>
+      <tr>
+        <td><code>UPSTREAM_TIMEOUT_RETRY_AFTER</code></td>
+        <td><code>5</code></td>
+        <td>Seconds advertised in the <code>Retry-After</code> header on 504 responses.</td>
+      </tr>
+    </table>
+<pre><code>HTTP/1.1 504 Gateway Timeout
+Retry-After: 5
+Content-Type: application/problem+json
+
+{
+  "type": "https://api.google-play-api.dev/problems/upstream-timeout",
+  "title": "Gateway Timeout",
+  "status": 504,
+  "detail": "The upstream service did not respond within the timeout budget"
+}</code></pre>
+
+    <h2>Operational notes</h2>
+    <ul>
+      <li>Limits are per-IP. Behind the Fly.io proxy the app trusts the proxy (<code>trust proxy</code>), so the client IP is used.</li>
+      <li>The limit is global to the instance, not per-endpoint or per-key. Per-key quotas are planned for the v2 SaaS tier (M3).</li>
+      <li>Disabling the limit (<code>RATE_LIMIT_DISABLED=true</code>) is only for verification deployments — production instances should always enable throttling to protect the upstream scraper from blocks.</li>
+    </ul>
+  </main>
+
+  <footer>
+    <p>Google Play API · <a href="https://github.com/srikanthlogic/google-play-api">github.com/srikanthlogic/google-play-api</a></p>
+  </footer>
+  <script src="/docs/js/main.js"></script>
+</body>
+</html>

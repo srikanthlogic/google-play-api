@@ -55,22 +55,18 @@ const { userName, userImage, replyText, _url, ...rest } = review;
 **Impact:** Tests can now run standalone with `npm test`.
 
 ### 1.1 Security Vulnerabilities
-**Severity: HIGH | Effort: LOW**
+**Severity: HIGH | Effort: LOW | Status: RESOLVED (2026-08-16)**
 
-| Package | Severity | Issue | Action |
-|---------|----------|-------|--------|
-| body-parser | HIGH | qs vulnerability | `npm audit fix` |
-| newman | HIGH | Via lodash dependency | Update to 6.2.2 |
-| lodash | MODERATE | Prototype pollution | Update dependencies |
-| jose | MODERATE | Resource exhaustion | Update via newman |
+| Package | Severity | Issue | Resolution |
+|---------|----------|-------|------------|
+| body-parser | HIGH | qs vulnerability | Fixed via Express 4.22.1+ (body-parser 1.20.6) |
+| newman | HIGH | Via lodash dependency | Removed — replaced by @usebruno/cli |
+| lodash | MODERATE | Prototype pollution | Transitive via bruno/express-validator; no direct dep |
+| jose | MODERATE | Resource exhaustion | Removed with newman |
 
-**Impact:** Production security risk  
-**Effort:** 1-2 hours  
-**Command:**
-```bash
-npm audit fix
-npm update newman
-```
+**Production audit:** `npm audit --omit=dev --audit-level=high` → 0 vulnerabilities.
+**CI gate:** `deploy-v2dev.yml` runs `npm audit --omit=dev --audit-level=high` on every PR and push.
+**Dev-only findings:** @usebruno/cli transitive deps (axios, nanoid, uuid) — not shipped in Docker image (`npm ci --only=production`).
 
 ### 1.2 Missing Input Validation
 **Severity: HIGH | Effort: MEDIUM | Status: PARTIALLY COMPLETED**

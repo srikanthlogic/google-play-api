@@ -18,5 +18,11 @@ export default [
       quotes: ['error', 'single'],
       indent: ['error', 2]
     }
+  },
+  {
+    files: ['docs/js/**/*.js'],
+    languageOptions: {
+      globals: globals.browser
+    }
   }
 ];

@@ -1,0 +1,39 @@
+meta {
+  name: Batch App Details - Over Cap
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{HOST}}/api/apps/batch
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "appIds": [
+      "com.example.app0", "com.example.app1", "com.example.app2", "com.example.app3", "com.example.app4",
+      "com.example.app5", "com.example.app6", "com.example.app7", "com.example.app8", "com.example.app9",
+      "com.example.app10", "com.example.app11", "com.example.app12", "com.example.app13", "com.example.app14",
+      "com.example.app15", "com.example.app16", "com.example.app17", "com.example.app18", "com.example.app19",
+      "com.example.app20"
+    ]
+  }
+}
+
+vars:pre-request {
+  expectedResponseStatusCode: 400
+}
+
+tests {
+  const responseData = res.getBody();
+
+  test("Status code is 400", function() {
+    expect(res.getStatus()).to.equal(400);
+  });
+
+  test("Error message states the 20-app cap", function() {
+    expect(responseData.messages[0]).to.include("at most 20");
+  });
+}

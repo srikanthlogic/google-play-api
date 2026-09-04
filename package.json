@@ -6,10 +6,14 @@
   "type": "module",
   "scripts": {
     "test": "node test.js",
-    "generateoas": "p2o ./PostmanCollections/GooglePlayAPI.postman_collection.json -o ./openapi/options.json -f ./openapi/swagger.json",
+    "generateoas": "node scripts/generate-oas.mjs",
     "start": "node server.js",
     "dev": "nodemon server.js",
-    "prepare": "husky || true"
+    "prepare": "husky || true",
+    "test:coverage": "c8 --reporter=text --reporter=lcov --reporter=json-summary --all --include=lib --include=server.js sh -c 'node --test --experimental-test-module-mocks test/*.test.js && node test.js'",
+    "test:unit": "node --test --experimental-test-module-mocks --test-reporter=spec --test-reporter-destination=stdout --test-reporter=junit --test-reporter-destination=test/junit-unit.xml test/*.test.js",
+    "pretest": "npm run test:unit",
+    "test:unit:coverage": "c8 --reporter=text --reporter=lcov --reporter=json-summary node --test --experimental-test-module-mocks test/*.test.js"
   },
   "author": "Facundo Olano",
   "license": "ISC",
@@ -26,11 +30,13 @@
     "morgan": "^1.10.1",
     "pino": "^10.3.1",
     "postman-to-openapi": "^3.0.1",
-    "swagger-ui-express": "^5.0.1"
+    "swagger-ui-express": "^5.0.1",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",
-    "@usebruno/cli": "^1.0.0",
+    "@usebruno/cli": "^4.0.0",
+    "c8": "^12.0.0",
     "eslint": "^9.17.0",
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-node": "^11.1.0",

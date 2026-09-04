@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Endpoints — Google Play API Docs</title>
+  <meta name="description" content="v2 API surface: every route, method, query parameter, and response." />
+  <link rel="stylesheet" href="/docs/css/style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/docs/">gplay<span class="accent">api</span></a>
+    <nav>
+      <a href="/docs/">Home</a>
+      <a href="/docs/endpoints.html">Endpoints</a>
+      <a href="/docs/errors.html">Errors</a>
+      <a href="/docs/throttling.html">Throttling</a>
+      <a href="/docs/localization.html">Localization</a>
+      <a href="/docs/deployment.html">Deployment</a>
+      <a href="/docs/roadmap.html">v2 Roadmap</a>
+    </nav>
+  </header>
+
+  <main>
+    <h1>API Endpoints</h1>
+    <p class="lead">
+      Base path: <code>/api/</code> (frozen v1) or <code>/v2/</code> (current).
+      JSON responses. Interactive reference at
+      <a href="/api-docs">/api-docs</a> (Swagger UI) and
+      <a href="/openapi.json">/openapi.json</a>.
+    </p>
+
+    <div class="notice">
+      <strong>Versioning:</strong> v2 is available under <code>/v2/</code>. The
+      frozen v1 surface remains under <code>/api/</code> and returns
+      <code>Deprecation</code> and <code>Sunset</code> headers. The two
+      surfaces share paths — pick the prefix.
+    </div>
+
+    <h2>Apps</h2>
+    <table>
+      <tr><th>Method</th><th>Path</th><th>Description</th></tr>
+      <tr><td>GET</td><td><code>/api/apps?q=&amp;lang=&amp;country=&amp;num=&amp;fullDetail=</code></td><td>Search apps.</td></tr>
+      <tr><td>GET</td><td><code>/api/apps/:appId?lang=&amp;country=&amp;fields=</code></td><td>App details.</td></tr>
+      <tr><td>GET</td><td><code>/api/apps/:appId/similar?lang=&amp;country=</code></td><td>Similar apps.</td></tr>
+      <tr><td>GET</td><td><code>/api/apps/:appId/datasafety</code></td><td>Data safety labels.</td></tr>
+      <tr><td>GET</td><td><code>/api/apps/:appId/permissions</code></td><td>Permissions list.</td></tr>
+      <tr><td>GET</td><td><code>/api/apps/:appId/availability?countries=IN,US</code></td><td>Country availability (max 30 codes).</td></tr>
+      <tr><td>POST</td><td><code>/api/apps/batch</code> (body: <code>{"appIds": [...], "concurrency": 1-20}</code>)</td><td>Batch app details (max 20 apps, per-app settled results).</td></tr>
+      <tr><td>GET</td><td><code>/api/suggest?q=</code></td><td>Search autocomplete (promoted from <code>/apps/?suggest=</code>).</td></tr>
+      <tr><td>GET</td><td><code>/api/apps/:appId/reviews?sort=&amp;num=&amp;lang=</code></td><td>App reviews (paginated; use the v2 cursor or <code>/v2/apps/:appId/reviews/export</code> for streaming).</td></tr>
+    </table>
+
+    <h2>Browse</h2>
+    <table>
+      <tr><th>Method</th><th>Path</th><th>Description</th></tr>
+      <tr><td>GET</td><td><code>/api/developers/:devId?lang=&amp;country=&amp;num=</code></td><td>Apps by developer.</td></tr>
+      <tr><td>GET</td><td><code>/api/developers?q=</code></td><td>Developer lookup.</td></tr>
+      <tr><td>GET</td><td><code>/api/lists?category=&amp;collection=&amp;lang=&amp;country=&amp;num=</code></td><td>App lists (top / new / trending).</td></tr>
+      <tr><td>GET</td><td><code>/api/categories?lang=</code></td><td>Categories.</td></tr>
+      <tr><td>GET</td><td><code>/api/collections?lang=</code></td><td>Collections.</td></tr>
+    </table>
+
+    <h2>System</h2>
+    <table>
+      <tr><th>Method</th><th>Path</th><th>Description</th></tr>
+      <tr><td>GET</td><td><code>/healthz</code></td><td>Liveness probe (<code>200 {"status":"ok"}</code>).</td></tr>
+      <tr><td>GET</td><td><code>/api-docs</code></td><td>Swagger UI.</td></tr>
+      <tr><td>GET</td><td><code>/openapi.json</code></td><td>OpenAPI 3.1 spec.</td></tr>
+      <tr><td>GET</td><td><code>/docs</code></td><td>Documentation microsite (this site).</td></tr>
+    </table>
+
+    <h2>Common query parameters</h2>
+    <table>
+      <tr><th>Param</th><th>Applies to</th><th>Notes</th></tr>
+      <tr>
+        <td><code>lang</code></td>
+        <td>all</td>
+        <td>ISO 639-1. Default <code>en</code>. Lowercased. Invalid → <code>400</code> on v2.</td>
+      </tr>
+      <tr>
+        <td><code>country</code></td>
+        <td>all</td>
+        <td>ISO 3166-1 alpha-2. Default <code>US</code> (or <code>COUNTRY_OF_QUERY</code>). Uppercased. Invalid → <code>400</code> on v2.</td>
+      </tr>
+      <tr>
+        <td><code>num</code></td>
+        <td>list endpoints</td>
+        <td>1–200. Default 20.</td>
+      </tr>
+      <tr>
+        <td><code>fullDetail</code></td>
+        <td><code>GET /api/apps</code></td>
+        <td>Enrich search results with full app detail (slower).</td>
+      </tr>
+      <tr>
+        <td><code>fields</code></td>
+        <td><code>GET /api/apps/:appId</code></td>
+        <td>Comma-separated projection, e.g. <code>?fields=title,score,installs</code>. Unknown fields → <code>400</code> with the full whitelist. <strong>Field selection is not data minimization</strong> — the server still fetches the full upstream payload.</td>
+      </tr>
+      <tr>
+        <td><code>sort</code></td>
+        <td><code>GET /api/apps/:appId/reviews</code></td>
+        <td><code>newest</code> | <code>rating</code> | <code>helpfulness</code>.</td>
+      </tr>
+    </table>
+
+    <h2>Examples</h2>
+<pre><code>curl "https://gplayapiv2.fly.dev/api/apps/com.phonepe.app?country=IN"
+curl "https://gplayapiv2.fly.dev/api/apps?q=upi&num=5"
+curl "https://gplayapiv2.fly.dev/api/lists?category=GAME&collection=TOP_FREE&num=10"</code></pre>
+  </main>
+
+  <footer>
+    <p>Google Play API · <a href="https://github.com/srikanthlogic/google-play-api">github.com/srikanthlogic/google-play-api</a></p>
+  </footer>
+  <script src="/docs/js/main.js"></script>
+</body>
+</html>

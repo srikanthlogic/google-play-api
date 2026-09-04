@@ -105,9 +105,9 @@ EXPOSE 3000
 
 # Add health check for container monitoring
 # Uses curl to check if the application is responding
-# The application should respond with HTTP 200 on the root endpoint
+# The application should respond with HTTP 200 on the liveness endpoint
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD node -e "require('http').get('http://localhost:3000', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"
+    CMD node -e "require('http').get('http://localhost:3000/healthz', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"
 
 # Set the default command to start the application
 # Using node directly instead of npm start to reduce overhead

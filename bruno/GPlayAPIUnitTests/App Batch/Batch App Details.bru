@@ -1,0 +1,38 @@
+meta {
+  name: Batch App Details
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{HOST}}/api/apps/batch
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "appIds": ["in.juspay.nammayatri", "com.duolingo"],
+    "concurrency": 2
+  }
+}
+
+tests {
+  const responseData = res.getBody();
+
+  test("Status code is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("One settled entry per requested appId, in request order", function() {
+    expect(responseData.results.length).to.equal(2);
+    expect(responseData.results[0].appId).to.equal("in.juspay.nammayatri");
+    expect(responseData.results[1].appId).to.equal("com.duolingo");
+  });
+
+  test("Known apps come back fulfilled with app details", function() {
+    expect(responseData.results[0].status).to.equal("fulfilled");
+    expect(responseData.results[0].app.appId).to.equal("in.juspay.nammayatri");
+    expect(responseData.results[0].app.title).to.be.a("string");
+  });
+}

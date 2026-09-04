@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Google Play API — Documentation</title>
+  <meta name="description" content="REST wrapper around the Google Play Store. v2 verification deployment. Frozen v1 sunset in progress." />
+  <link rel="stylesheet" href="/docs/css/style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/docs/">gplay<span class="accent">api</span></a>
+    <nav>
+      <a href="/docs/">Home</a>
+      <a href="/docs/endpoints.html">Endpoints</a>
+      <a href="/docs/errors.html">Errors</a>
+      <a href="/docs/throttling.html">Throttling</a>
+      <a href="/docs/localization.html">Localization</a>
+      <a href="/docs/deployment.html">Deployment</a>
+      <a href="/docs/roadmap.html">v2 Roadmap</a>
+    </nav>
+  </header>
+
+  <main>
+    <h1>Google Play Store data, as an API</h1>
+    <p class="lead">
+      REST wrapper around <code>@mradex77/google-play-scraper</code>. Search apps,
+      fetch details, reviews, permissions, data safety, lists, categories and
+      collections.
+    </p>
+
+    <div class="card-grid">
+      <div class="card">
+        <h3>Quick start</h3>
+<pre><code>curl https://gplayapiv2.fly.dev/api/apps/com.instagram.android</code></pre>
+        <p>Returns app metadata for Instagram as JSON.</p>
+      </div>
+      <div class="card">
+        <h3>Interactive docs</h3>
+        <p>Swagger UI at <code><a href="/api-docs">/api-docs</a></code>,
+          raw OpenAPI 3.1 spec at
+          <code><a href="/openapi.json">/openapi.json</a></code>.</p>
+      </div>
+      <div class="card">
+        <h3>Health</h3>
+        <p><code>GET /healthz</code> returns <code>{"status":"ok"}</code>.
+          Used by the Docker healthcheck and Fly probes.</p>
+      </div>
+    </div>
+
+    <div class="notice">
+      <strong>Versioning:</strong> v2 lives under <code>/v2/</code>.
+      The frozen v1 surface stays under <code>/api/</code> and returns
+      <code>Deprecation</code> + <code>Sunset</code> headers until its
+      announced removal. See the
+      <a href="/docs/roadmap.html">roadmap</a> for dates and
+      <a href="/docs/errors.html">errors</a> for the v2 RFC 9457 problem shape.
+    </div>
+
+    <h2>Common options</h2>
+    <table>
+      <tr><th>Param</th><th>Default</th><th>Description</th></tr>
+      <tr>
+        <td><code>country</code></td>
+        <td><code>US</code></td>
+        <td>Storefront country (ISO 3166-1 alpha-2). Override via <code>COUNTRY_OF_QUERY</code> env. See <a href="/docs/localization.html">localization</a>.</td>
+      </tr>
+      <tr>
+        <td><code>lang</code></td>
+        <td><code>en</code></td>
+        <td>UI language (ISO 639-1, e.g. <code>en</code>, <code>ta</code>). Override via <code>LANG_OF_QUERY</code> env. See <a href="/docs/localization.html">localization</a>.</td>
+      </tr>
+      <tr>
+        <td><code>num</code></td>
+        <td><code>20</code></td>
+        <td>Results per page (list endpoints, max 200).</td>
+      </tr>
+      <tr>
+        <td><code>throttling</code></td>
+        <td><code>disabled</code></td>
+        <td>See <a href="/docs/throttling.html">throttling</a> — v2 verification deployment ships with it disabled.</td>
+      </tr>
+    </table>
+
+    <h2>Examples</h2>
+<pre><code># Search apps
+curl "https://gplayapiv2.fly.dev/api/apps?q=paytm&num=10"
+
+# Reviews for an app (paginated)
+curl "https://gplayapiv2.fly.dev/api/apps/com.phonepe.app/reviews"
+
+# Permissions
+curl "https://gplayapiv2.fly.dev/api/apps/com.phonepe.app/permissions"</code></pre>
+
+    <h2>Where to go next</h2>
+    <ul>
+      <li><a href="/docs/endpoints.html">Endpoints</a> — every route, method, and accepted parameter.</li>
+      <li><a href="/docs/errors.html">Errors</a> — RFC 9457 problem shape and the 4xx/5xx catalog.</li>
+      <li><a href="/docs/throttling.html">Throttling</a> — rate limits and the upstream timeout budget.</li>
+      <li><a href="/docs/localization.html">Localization</a> — how <code>country</code> and <code>lang</code> resolve.</li>
+      <li><a href="/docs/deployment.html">Deployment</a> — Fly instances, env vars, Docker image.</li>
+      <li><a href="/docs/roadmap.html">v2 Roadmap</a> — current milestone and what's next.</li>
+    </ul>
+  </main>
+
+  <footer>
+    <p>Google Play API · <a href="https://github.com/srikanthlogic/google-play-api">github.com/srikanthlogic/google-play-api</a></p>
+  </footer>
+  <script src="/docs/js/main.js"></script>
+</body>
+</html>

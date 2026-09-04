@@ -1,0 +1,31 @@
+meta {
+  name: Lists - Honest 200 Cap
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{HOST}}/api/lists/?category=GAME&collection=TOP_FREE&num=10&start=195
+  body: none
+  auth: none
+}
+
+tests {
+  const responseData = res.getBody();
+
+  test("Status code is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("Partial final page: at most 5 remain before the 200 cap", function() {
+    expect(responseData.results.length).to.be.at.most(5);
+  });
+
+  test("prev link points at the previous page", function() {
+    expect(responseData.prev).to.include("start=185");
+  });
+
+  test("no dangling next link at/after the 200 cap", function() {
+    expect(responseData.next).to.equal(undefined);
+  });
+}

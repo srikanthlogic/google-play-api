@@ -8,9 +8,12 @@ import morgan from 'morgan';
 import cors from 'cors';
 import rateLimit from 'express-rate-limit';
 import logger from './lib/logger.js';
+import { getErrorStatusCode, problemDetails } from './lib/errors.js';
 
 const app = Express();
 const port = process.env.PORT || 3000;
+
+app.set('trust proxy', 1);
 
 const corsOptions = {
   origin: '*',
@@ -25,6 +28,8 @@ const windowMs = parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000', 10);
 const maxRequests = parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '100', 10);
 const skipSuccessfulRequests = process.env.RATE_LIMIT_SKIP_SUCCESSFUL_REQUESTS === 'true';
 const skipFailedRequests = process.env.RATE_LIMIT_SKIP_FAILED_REQUESTS === 'true';
+const rateLimitDisabled = process.env.RATE_LIMIT_DISABLED === 'true';
+const v1Sunset = process.env.V1_SUNSET || 'Sat, 16 Aug 2027 00:00:00 GMT';
 
 const limiter = rateLimit({
   windowMs,
@@ -43,7 +48,9 @@ const limiter = rateLimit({
     });
   }
 });
-app.use(limiter);
+if (!rateLimitDisabled) {
+  app.use('/api/', limiter);
+}
 
 app.use((req, res, next) => {
   res.removeHeader('X-Powered-By');
@@ -69,9 +76,20 @@ const options = {
 };
 
 app.use('/openapi.json', Express.static('openapi/swagger.json'));
+app.use('/docs', Express.static('docs', { index: 'index.html' }));
+
+app.get('/healthz', function (req, res) {
+  res.json({ status: 'ok' });
+});
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument, options));
+app.use('/api/', (req, res, next) => {
+  res.set('Deprecation', 'true');
+  res.set('Sunset', v1Sunset);
+  next();
+});
 app.use('/api/', router);
+app.use('/v2/', router);
 
 app.get('/', function (req, res) {
   res.redirect('/api-docs');
@@ -84,16 +102,36 @@ app.use((req, res, next) => {
 });
 
 app.use((err, req, res, _next) => {
-  logger.error({ error: err.message, stack: err.stack }, 'Request error');
-  res.status(err.status || 500);
-  res.json({
-    error: {
-      message: err.message,
-      ...(process.env.NODE_ENV === 'development' ? { stack: err.stack } : {})
-    }
-  });
+  const status = getErrorStatusCode(err);
+  logger.error({ error: err.message, stack: err.stack, code: err.code, status }, 'Request error');
+  if (err.issues) {
+    logger.error({ schemaIssues: err.issues }, 'Schema validation failure');
+  }
+  const problem = problemDetails(err, req, status);
+  res.status(status);
+  res.setHeader('Content-Type', 'application/problem+json');
+  if (problem.retryAfter !== undefined) {
+    res.setHeader('Retry-After', problem.retryAfter);
+  }
+  res.json(problem);
 });
 
-app.listen(port, () => {
+const server = app.listen(port, () => {
   logger.info(`Server started on port ${port}`);
 });
+
+const gracefulShutdown = (signal) => {
+  logger.info(`${signal} received, shutting down gracefully`);
+  server.close(() => {
+    logger.info('Server closed');
+    process.exit(0);
+  });
+  // Force exit after 5 seconds if connections don't close
+  setTimeout(() => {
+    logger.warn('Forcing shutdown after timeout');
+    process.exit(0);
+  }, 5000);
+};
+
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));

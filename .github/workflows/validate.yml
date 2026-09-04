@@ -1,0 +1,85 @@
+name: Reusable Validate
+
+on:
+  workflow_call:
+    inputs:
+      node-version:
+        type: string
+        default: '22'
+      run-coverage:
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+  checks: write
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node-version }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npx eslint .
+
+      - name: Audit production dependencies
+        run: |
+          npm install -g npm@11
+          npm audit --omit=dev --audit-level=high
+
+      - name: Generate OpenAPI document
+        run: npm run generateoas
+
+      - name: Run API tests
+        run: ${{ inputs.run-coverage && 'npm run test:coverage' || 'npm test' }}
+
+      - name: Publish test results (JUnit)
+        if: always()
+        uses: dorny/test-reporter@v1
+        with:
+          name: Bruno API Tests
+          path: 'bruno/*/junit.xml'
+          reporter: java-junit
+          fail-on-error: false
+
+      - name: Test results summary
+        if: always()
+        run: node scripts/ci-summary.js bruno/GPlayAPIUnitTests/junit.xml bruno/GooglePlayAPI/junit.xml
+
+      - name: Coverage summary
+        if: always() && inputs.run-coverage
+        run: |
+          if [ -f coverage/coverage-summary.json ]; then
+            echo "## 📊 Coverage Report" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            node -e "
+              const s = require('./coverage/coverage-summary.json').total;
+              const row = (k) => \`| \${k} | \${s[k].pct}% | \${s[k].covered}/\${s[k].total} |\`;
+              console.log('| Metric | Covered | Ratio |');
+              console.log('|--------|---------|-------|');
+              console.log(row('lines'));
+              console.log(row('functions'));
+              console.log(row('branches'));
+              console.log(row('statements'));
+            " >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Upload coverage artifacts
+        if: always() && inputs.run-coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 14
