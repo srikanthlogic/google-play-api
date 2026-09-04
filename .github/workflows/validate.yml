@@ -35,7 +35,9 @@ jobs:
         run: npx eslint .
 
       - name: Audit production dependencies
-        run: npm audit --omit=dev --audit-level=high
+        run: |
+          npm install -g npm@11
+          npm audit --omit=dev --audit-level=high
 
       - name: Generate OpenAPI document
         run: npm run generateoas
