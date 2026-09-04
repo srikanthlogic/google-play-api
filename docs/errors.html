@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Errors — Google Play API Docs</title>
+  <meta name="description" content="RFC 9457 problem details: every status code the API returns, with shape and example." />
   <link rel="stylesheet" href="/docs/css/style.css" />
 </head>
 <body>
@@ -15,7 +16,6 @@
       <a href="/docs/errors.html">Errors</a>
       <a href="/docs/throttling.html">Throttling</a>
       <a href="/docs/localization.html">Localization</a>
-      <a href="/docs/localization.html">Localization</a>
       <a href="/docs/deployment.html">Deployment</a>
       <a href="/docs/roadmap.html">v2 Roadmap</a>
     </nav>
@@ -23,18 +23,30 @@
 
   <main>
     <h1>Error responses</h1>
-    <p class="lead">v2 uses RFC 9457 problem details with content type <code>application/problem+json</code>.</p>
+    <p class="lead">
+      v2 uses <a href="https://www.rfc-editor.org/rfc/rfc9457">RFC 9457</a>
+      problem details with content type <code>application/problem+json</code>.
+      The frozen <code>/api/</code> v1 surface keeps its legacy JSON shape and
+      returns <code>Deprecation: true</code> + <code>Sunset</code> headers.
+    </p>
+
+    <h2>Status catalog</h2>
     <table>
-      <tr><th>Status</th><th>Code</th><th>Meaning</th></tr>
-      <tr><td>400</td><td><code>VALIDATION_ERROR</code></td><td>The request parameters are invalid.</td></tr>
-      <tr><td>404</td><td><code>HTTP_404</code></td><td>The app or requested resource was not found.</td></tr>
-      <tr><td>429</td><td><code>HTTP_429</code></td><td>The request exceeded the configured rate limit.</td></tr>
-      <tr><td>502</td><td><code>HTTP_502</code></td><td>The upstream Play Store response could not be parsed.</td></tr>
-      <tr><td>503</td><td><code>HTTP_503</code></td><td>The upstream Play Store could not be reached.</td></tr>
-      <tr><td>500</td><td><code>HTTP_500</code></td><td>An unexpected server error occurred.</td></tr>
+      <tr><th>Status</th><th><code>code</code></th><th>When</th></tr>
+      <tr><td>400</td><td><code>VALIDATION_ERROR</code></td><td>Invalid request parameter (bad <code>country</code>, bad <code>num</code>, unknown <code>fields</code>, unknown query param on v2).</td></tr>
+      <tr><td>404</td><td><code>HTTP_404</code></td><td>App or resource not found, or geo-restricted to the requested storefront.</td></tr>
+      <tr><td>429</td><td><code>HTTP_429</code></td><td>Rate limit exceeded. See <a href="/docs/throttling.html">throttling</a>.</td></tr>
+      <tr><td>502</td><td><code>HTTP_502</code></td><td>Upstream Play Store response could not be parsed.</td></tr>
+      <tr><td>503</td><td><code>HTTP_503</code></td><td>Upstream Play Store unreachable.</td></tr>
+      <tr><td>504</td><td><code>UPSTREAM_TIMEOUT</code></td><td>Upstream exceeded <code>UPSTREAM_TIMEOUT_MS</code>. Includes <code>Retry-After</code>. See <a href="/docs/throttling.html">throttling</a>.</td></tr>
+      <tr><td>500</td><td><code>HTTP_500</code></td><td>Unexpected server error.</td></tr>
     </table>
-    <h2>Response shape</h2>
-<pre><code>{
+
+    <h2>Response shape (v2)</h2>
+<pre><code>HTTP/1.1 400 Bad Request
+Content-Type: application/problem+json
+
+{
   "type": "https://api.google-play-api.dev/problems/bad-request",
   "title": "Bad Request",
   "status": 400,
@@ -42,11 +54,46 @@
   "code": "VALIDATION_ERROR",
   "instance": "/v2/apps/?num=0"
 }</code></pre>
-    <h2>Unknown query parameters</h2>
-    <p>On <code>/v2/</code>, passing a query parameter the endpoint does not declare returns <code>400</code> with a problem document naming the offending parameter(s). Scraper-internal flags such as <code>paginate</code> are not exposed over HTTP; use the <code>nextPaginationToken</code> cursor on <code>/v2/apps/:appId/reviews</code> or the streaming <code>/v2/apps/:appId/reviews/export</code> endpoint for deep review pulls. The deprecated <code>/api/</code> surface keeps its lenient posture (unknown parameters are ignored) until sunset.</p>
-    <p>Frozen v1 responses retain their legacy JSON shape and receive <code>Deprecation: true</code> and <code>Sunset</code> headers.</p>
-    <h2>Unknown query parameters</h2>
-    <p>On <code>/v2/</code>, query parameters that an endpoint does not declare are rejected with <code>400 VALIDATION_ERROR</code> instead of being silently forwarded upstream — string query values cannot satisfy upstream schema types like booleans (<code>paginate</code> on <code>/apps/:appId/reviews</code> was the motivating case, issue <a href="https://github.com/srikanthlogic/google-play-api/issues/192">#192</a>). The frozen <code>/api/</code> v1 surface stays lenient and ignores unknown parameters for backwards compatibility.</p>
+    <p>Fields:</p>
+    <ul>
+      <li><code>type</code> — stable URI identifying the problem class.</li>
+      <li><code>title</code> — short human-readable summary, matches the HTTP reason phrase.</li>
+      <li><code>status</code> — mirrors the HTTP status code.</li>
+      <li><code>detail</code> — endpoint-specific explanation.</li>
+      <li><code>code</code> — machine-readable code (e.g. <code>VALIDATION_ERROR</code>).</li>
+      <li><code>instance</code> — the path of the offending request.</li>
+    </ul>
+
+    <h2>Unknown query parameters (v2)</h2>
+    <p>
+      On <code>/v2/</code>, query parameters the endpoint does not declare
+      return <code>400 VALIDATION_ERROR</code> instead of being silently
+      forwarded upstream — string query values cannot satisfy upstream schema
+      types like booleans (<code>paginate</code> on
+      <code>/apps/:appId/reviews</code> was the motivating case,
+      <a href="https://github.com/srikanthlogic/google-play-api/issues/192">#192</a>).
+      The frozen <code>/api/</code> v1 surface stays lenient and ignores
+      unknown parameters for backwards compatibility.
+    </p>
+    <p>
+      Scraper-internal flags such as <code>paginate</code> are not exposed over
+      HTTP. For deep review pulls, use the <code>nextPaginationToken</code>
+      cursor on <code>/v2/apps/:appId/reviews</code> or the streaming
+      <code>/v2/apps/:appId/reviews/export</code> endpoint (NDJSON/CSV).
+    </p>
+
+    <h2>Legacy v1 shape</h2>
+<pre><code>HTTP/1.1 400 Bad Request
+Deprecation: true
+Sunset: Wed, 01 Jan 2026 00:00:00 GMT
+
+{
+  "error": {
+    "message": "Invalid country code"
+  }
+}</code></pre>
+    <p>Same paths, legacy body. Clients should migrate to the v2 shape — the
+      v1 headers make the timeline explicit.</p>
   </main>
 
   <footer>

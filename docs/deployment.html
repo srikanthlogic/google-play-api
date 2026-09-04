@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Deployment — Google Play API Docs</title>
+  <meta name="description" content="Docker image, Fly.io instances, CI workflow, and environment configuration." />
   <link rel="stylesheet" href="/docs/css/style.css" />
 </head>
 <body>
@@ -22,9 +23,11 @@
 
   <main>
     <h1>Deployment</h1>
-    <p class="lead">The API ships as a Docker image (Node 22 Alpine, non-root
-      user, <code>dumb-init</code> PID 1). The image includes this
-      documentation microsite at <code>/docs</code>.</p>
+    <p class="lead">
+      The API ships as a Docker image (Node 22 Alpine, non-root user,
+      <code>dumb-init</code> PID 1). The image includes this documentation
+      microsite at <code>/docs</code>.
+    </p>
 
     <h2>Instances</h2>
     <table>
@@ -36,9 +39,11 @@
 
     <h2>Deploying from v2dev</h2>
 <pre><code>flyctl deploy -c fly.v2dev.toml --remote-only</code></pre>
-    <p>CI also deploys automatically on every push to <code>v2dev</code>
+    <p>
+      CI also deploys automatically on every push to <code>v2dev</code>
       (see <code>.github/workflows/deploy-v2dev.yml</code>), building and
-      pushing the <code>v2dev</code> image to GHCR, then deploying it.</p>
+      pushing the <code>v2dev</code> image to GHCR, then deploying it.
+    </p>
 
     <h2>Environment variables</h2>
     <table>
@@ -54,9 +59,11 @@
 docker run -p 3000:3000 -e COUNTRY_OF_QUERY=IN google-play-api</code></pre>
 
     <h2>Health check</h2>
-    <p><code>GET /healthz</code> returns <code>200 {"status":"ok"}</code>.
+    <p>
+      <code>GET /healthz</code> returns <code>200 {"status":"ok"}</code>.
       The Docker <code>HEALTHCHECK</code> and Fly deployments use this
-      endpoint.</p>
+      endpoint.
+    </p>
   </main>
 
   <footer>
