@@ -1,0 +1,45 @@
+meta {
+  name: GraphQL - Error Contract
+  type: http
+  seq: 14
+}
+
+post {
+  url: {{HOST}}/v2/graphql
+  body: graphql
+  auth: none
+}
+
+headers {
+  accept: application/json
+}
+
+body:graphql {
+  {
+    app(appId: "com.example.app", country: "INVALID") {
+      appId
+    }
+  }
+}
+
+vars:pre-request {
+  expectedResponseStatusCode: 200
+}
+
+tests {
+  const responseData = res.getBody();
+
+  test("Status code is 200 (GraphQL over HTTP)", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("A field error is present", function() {
+    expect(responseData.errors).to.be.an("array").with.lengthOf.at.least(1);
+  });
+
+  test("extensions carries the REST error taxonomy", function() {
+    expect(responseData.errors[0].extensions.httpStatus).to.equal(400);
+    expect(responseData.errors[0].extensions.code).to.equal("VALIDATION_ERROR");
+    expect(responseData.errors[0].extensions.type).to.include("/problems/");
+  });
+}

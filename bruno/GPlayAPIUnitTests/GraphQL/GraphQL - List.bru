@@ -1,0 +1,47 @@
+meta {
+  name: GraphQL - List
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{HOST}}/v2/graphql
+  body: graphql
+  auth: none
+}
+
+headers {
+  accept: application/json
+}
+
+body:graphql {
+  {
+    list(collection: "TOP_FREE", category: "GAME", num: 5) {
+      appId
+      title
+    }
+  }
+}
+
+tests {
+  const responseData = res.getBody();
+
+  test("Status code is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("No GraphQL errors", function() {
+    expect(responseData.errors).to.be.undefined;
+  });
+
+  test("list respects num", function() {
+    expect(responseData.data.list).to.be.an("array").with.lengthOf(5);
+  });
+
+  test("every entry has an appId and title", function() {
+    responseData.data.list.forEach(function(app) {
+      expect(app.appId).to.be.a("string");
+      expect(app.title).to.be.a("string");
+    });
+  });
+}

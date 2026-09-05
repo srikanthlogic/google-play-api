@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GraphQL — Google Play API Documentation</title>
+  <meta name="description" content="GraphQL endpoint for the Google Play API: query apps, search, lists, reviews, permissions, data safety and more over a single /v2/graphql endpoint." />
+  <link rel="stylesheet" href="/docs/css/style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/docs/">gplay<span class="accent">api</span></a>
+    <nav>
+      <a href="/docs/">Home</a>
+      <a href="/docs/endpoints.html">Endpoints</a>
+      <a href="/docs/graphql.html">GraphQL</a>
+      <a href="/docs/errors.html">Errors</a>
+      <a href="/docs/throttling.html">Throttling</a>
+      <a href="/docs/localization.html">Localization</a>
+      <a href="/docs/deployment.html">Deployment</a>
+      <a href="/docs/roadmap.html">v2 Roadmap</a>
+    </nav>
+  </header>
+
+  <main>
+    <h1>GraphQL</h1>
+    <p class="lead">
+      The full v2 read surface is also available as GraphQL at
+      <code>POST /v2/graphql</code> — one endpoint, exactly the fields you ask
+      for, multiple resources in a single round trip.
+    </p>
+
+    <div class="notice">
+      <strong>Playground:</strong> open <code><a href="/v2/graphql">/v2/graphql</a></code>
+      in a browser for the built-in GraphiQL IDE (it loads GraphiQL from a CDN,
+      so the API ships no extra payload for it). Introspection is enabled, so
+      any GraphQL client can discover the schema.
+    </div>
+
+    <h2>Quick start</h2>
+<pre><code>curl -X POST https://gplayapiv2.fly.dev/v2/graphql \
+  -H 'content-type: application/json' \
+  -d '{"query":"{ app(appId: \"com.instagram.android\") { title score installs developer { devId } } }"}'</code></pre>
+
+    <h2>Queries</h2>
+    <table>
+      <thead>
+        <tr><th>Query</th><th>REST equivalent</th><th>Notes</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>app(appId, country, lang)</code></td><td><code>GET /v2/apps/:appId</code></td><td>Also records a history snapshot, like REST.</td></tr>
+        <tr><td><code>apps(ids, country, lang, concurrency)</code></td><td><code>POST /v2/apps/batch</code></td><td>Per-ID settled results as an <code>AppOk | AppError</code> union (max 20).</td></tr>
+        <tr><td><code>search(term, pageSize, cursor, fullDetail, …)</code></td><td><code>GET /v2/apps/search</code></td><td>Cursor pagination — pass <code>nextToken</code> back as <code>cursor</code>.</td></tr>
+        <tr><td><code>list(collection, category, age, num, start, …)</code></td><td><code>GET /v2/apps/?collection=</code></td><td>Capped at 200 items like the scraper.</td></tr>
+        <tr><td><code>similar(appId, …)</code></td><td><code>GET /v2/apps/:appId/similar</code></td><td></td></tr>
+        <tr><td><code>reviews(appId, num, sort, cursor, userdata, replies)</code></td><td><code>GET /v2/apps/:appId/reviews</code></td><td><code>sort</code> is a <code>HELPFUL | NEWEST | RATED</code> enum.</td></tr>
+        <tr><td><code>developer(devId, num, …)</code></td><td><code>GET /v2/developers/:devId</code></td><td></td></tr>
+        <tr><td><code>developerApps(devId, pageSize, cursor, …)</code></td><td><code>GET /v2/developers/:devId/apps</code></td><td>Cursor pagination.</td></tr>
+        <tr><td><code>suggest(term)</code></td><td><code>GET /v2/suggest</code></td><td></td></tr>
+        <tr><td><code>dataSafety(appId, …)</code></td><td><code>GET /v2/apps/:appId/datasafety</code></td><td></td></tr>
+        <tr><td><code>permissions(appId, country)</code></td><td><code>GET /v2/apps/:appId/permissions</code></td><td><code>type</code> mapped to its group name.</td></tr>
+        <tr><td><code>availability(appId, countries)</code></td><td><code>GET /v2/apps/:appId/availability</code></td><td>Countries returned as a list (max 30).</td></tr>
+        <tr><td><code>categories</code> / <code>collections</code></td><td><code>GET /v2/categories/</code> etc.</td><td>Valid keys for <code>list()</code>.</td></tr>
+      </tbody>
+    </table>
+
+    <p>
+      Not exposed over GraphQL by design: the reviews NDJSON/CSV export
+      (GraphQL pagination covers the same data) and <code>/v2/health</code>
+      (the endpoint serves its own health semantics).
+    </p>
+
+    <h2>Field selection &amp; app shape</h2>
+    <p>
+      The <code>App</code> type mirrors the REST app object, including the
+      absolute deep links (<code>url</code>, <code>permissions</code>,
+      <code>similar</code>, <code>reviews</code>, <code>datasafety</code>,
+      <code>developer.url</code>, <code>categories</code>) that the REST
+      surface embeds. GraphQL selection sets are the native equivalent of the
+      REST <code>?fields=</code> projection — only requested fields travel
+      over the wire.
+    </p>
+
+    <h2>Errors</h2>
+    <p>
+      GraphQL-over-HTTP answers <code>200</code> with an <code>errors</code>
+      array even for upstream failures; the REST
+      <a href="/docs/errors.html">problem taxonomy</a> travels in
+      <code>extensions</code>:
+    </p>
+<pre><code>{
+  "errors": [{
+    "message": "App not found (404)",
+    "path": ["app"],
+    "extensions": {
+      "httpStatus": 404,
+      "code": "HTTP_404",
+      "type": "https://api.google-play-api.dev/problems/not-found"
+    }
+  }]
+}</code></pre>
+    <p>
+      <code>extensions.retryAfter</code> is present for rate-limit (429) and
+      upstream-timeout (504) errors, matching the REST
+      <code>Retry-After</code> header. Request-level problems — malformed
+      documents or queries exceeding the depth limit — return a real HTTP 400.
+    </p>
+
+    <h2>Depth limit</h2>
+    <p>
+      Queries are capped at 10 levels of nested field selection (override with
+      the <code>GRAPHQL_MAX_DEPTH</code> environment variable). Over-deep
+      queries are rejected before execution with
+      <code>extensions.code = "GRAPHQL_MAX_DEPTH"</code>.
+    </p>
+
+    <h2>Local queries</h2>
+    <p>
+      <code>country</code>/<code>lang</code> arguments behave like the REST
+      query params: they default to the server configuration, accept
+      ISO-3166-1 alpha-2 codes and BCP-47 tags, and invalid values produce the
+      400 error shown above.
+    </p>
+  </main>
+
+  <footer>
+    <p>Google Play API · <a href="https://github.com/srikanthlogic/google-play-api">github.com/srikanthlogic/google-play-api</a></p>
+  </footer>
+  <script src="/docs/js/main.js"></script>
+</body>
+</html>

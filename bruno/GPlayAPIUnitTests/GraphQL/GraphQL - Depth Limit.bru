@@ -1,0 +1,43 @@
+meta {
+  name: GraphQL - Depth Limit
+  type: http
+  seq: 13
+}
+
+post {
+  url: {{HOST}}/v2/graphql
+  body: graphql
+  auth: none
+}
+
+headers {
+  accept: application/json
+}
+
+body:graphql {
+  {
+    app(appId: "com.example.app") {
+      f1 { f2 { f3 { f4 { f5 { f6 { f7 { f8 { f9 { f10 { appId } } } } } } } } } }
+    }
+  }
+}
+
+vars:pre-request {
+  expectedResponseStatusCode: 400
+}
+
+tests {
+  const responseData = res.getBody();
+
+  test("Status code is 400", function() {
+    expect(res.getStatus()).to.equal(400);
+  });
+
+  test("Error code is GRAPHQL_MAX_DEPTH", function() {
+    expect(responseData.errors[0].extensions.code).to.equal("GRAPHQL_MAX_DEPTH");
+  });
+
+  test("Error message states the depth limit", function() {
+    expect(responseData.errors[0].message).to.include("maximum depth");
+  });
+}

@@ -22,6 +22,7 @@ The API is served under two base paths:
 - **Data Safety & Permissions**: Access app data safety information and required permissions
 - **Similar Apps**: Discover apps similar to a specific application
 - **v2 capabilities**: Cursor-based pagination, streaming reviews export (NDJSON/CSV), app history snapshots with field-level change detection, batch details, and a live upstream health endpoint
+- **GraphQL**: the full v2 read surface at `POST /v2/graphql` with a built-in GraphiQL IDE, exact field selection, and error extensions mirroring the REST problem taxonomy
 - **Contract-tested responses**: Every v2 response is validated against zod schemas; OpenAPI 3.1 spec is generated from those same schemas
 - **RESTful API**: Clean, consistent REST endpoints with JSON responses
 - **Interactive Documentation**: Built-in API documentation for easy exploration
@@ -205,6 +206,24 @@ curl "http://localhost:3000/v2/health?probe=true"
 curl "http://localhost:3000/v2/suggest?q=spot"
 ```
 
+### GraphQL
+
+The same v2 read surface is also available as GraphQL at `POST /v2/graphql` — one endpoint, exactly the fields you ask for, multiple resources in a single round trip. Opening it in a browser serves the built-in GraphiQL IDE.
+
+```bash
+curl -X POST "http://localhost:3000/v2/graphql" \
+  -H "Content-Type: application/json" \
+  -d '{"query":"{ app(appId: \"com.instagram.android\") { title score installs developer { devId } } }"}'
+```
+
+- **Read parity with REST** — `app`, `apps` (batch as an `AppOk | AppError` union), `search`/`developerApps` (cursor pages via `nextToken`), `list`, `similar`, `reviews` (with the same `userdata`/`replies` privacy rules), `developer`, `suggest`, `dataSafety`, `permissions`, `availability`, `categories`, `collections`
+- **Shared resilience** — resolvers go through the same cache → retry → timeout → circuit-breaker stack and zod contract validators as the REST endpoints
+- **Error contract** — failures return `200` with an `errors` array whose entries carry `extensions.{httpStatus, code, type, retryAfter}` mirroring the REST problem taxonomy; malformed documents and over-deep queries return a real HTTP `400`
+- **Depth limit** — queries are capped at 10 levels of nested selection (configurable via `GRAPHQL_MAX_DEPTH`)
+
+See the [GraphQL documentation](http://localhost:3000/docs/graphql.html) for the full query inventory and examples.
+
+
 ## API Documentation
 
 For complete API documentation, including all endpoints, parameters, and response formats, visit:
@@ -221,9 +240,9 @@ Testing happens at two levels:
 
 | Bruno Suite | Requests | Assertions | Status |
 |------------|----------|------------|--------|
-| GPlayAPIUnitTests | 19 | 97 | ✅ All Pass |
-| GooglePlayAPI | 14 | 100 | ✅ All Pass |
-| **Total** | **33** | **197** | **✅ 100%** |
+| GPlayAPIUnitTests | 34 | 163 | ✅ All Pass |
+| GooglePlayAPI | 12 | 70 | ✅ All Pass |
+| **Total** | **46** | **233** | **✅ 100%** |
 
 ### Running Tests
 
@@ -247,7 +266,7 @@ npm run test:coverage
 Tests are organized in two directories:
 - `test/` — node:test unit suites for the lib modules
 - `bruno/GooglePlayAPI/` - Main API endpoint tests (Apps, Developers, Categories, Lists, Collections)
-- `bruno/GPlayAPIUnitTests/` - Unit tests for privacy features and app reviews
+- `bruno/GPlayAPIUnitTests/` - Unit tests for privacy features, app reviews, and every GraphQL query
 - `bruno/*/environments/Local.bru` - Environment variables for local testing
 
 ## Contributing

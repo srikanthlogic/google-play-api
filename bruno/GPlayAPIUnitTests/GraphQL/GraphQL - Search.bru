@@ -1,0 +1,54 @@
+meta {
+  name: GraphQL - Search
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{HOST}}/v2/graphql
+  body: graphql
+  auth: none
+}
+
+headers {
+  accept: application/json
+}
+
+body:graphql {
+  {
+    search(term: "game", pageSize: 3) {
+      results {
+        appId
+        title
+      }
+      nextToken
+    }
+  }
+}
+
+tests {
+  const responseData = res.getBody();
+
+  test("Status code is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("No GraphQL errors", function() {
+    expect(responseData.errors).to.be.undefined;
+  });
+
+  test("results respects pageSize", function() {
+    expect(responseData.data.search.results).to.be.an("array").with.lengthOf(3);
+  });
+
+  test("every result has an appId and title", function() {
+    responseData.data.search.results.forEach(function(app) {
+      expect(app.appId).to.be.a("string");
+      expect(app.title).to.be.a("string");
+    });
+  });
+
+  test("nextToken is an opaque cursor", function() {
+    expect(responseData.data.search.nextToken).to.be.a("string").and.to.have.lengthOf.at.least(1);
+  });
+}

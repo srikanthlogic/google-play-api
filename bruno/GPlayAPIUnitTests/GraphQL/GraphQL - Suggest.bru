@@ -1,0 +1,47 @@
+meta {
+  name: GraphQL - Suggest
+  type: http
+  seq: 9
+}
+
+post {
+  url: {{HOST}}/v2/graphql
+  body: graphql
+  auth: none
+}
+
+headers {
+  accept: application/json
+}
+
+body:graphql {
+  {
+    suggest(term: "gam") {
+      term
+      url
+    }
+  }
+}
+
+tests {
+  const responseData = res.getBody();
+
+  test("Status code is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("No GraphQL errors", function() {
+    expect(responseData.errors).to.be.undefined;
+  });
+
+  test("returns a results array of suggestions", function() {
+    expect(responseData.data.suggest).to.be.an("array").that.is.not.empty;
+  });
+
+  test("each suggestion has term and a search url", function() {
+    responseData.data.suggest.forEach(function(item) {
+      expect(item.term).to.be.a("string");
+      expect(item.url).to.be.a("string").that.includes("/v2/apps/");
+    });
+  });
+}

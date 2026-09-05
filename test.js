@@ -1,7 +1,10 @@
 import { spawn, execSync } from 'child_process';
 
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-const contractFetch = (url) => fetch(url, { headers: { Connection: 'close' } });
+const contractFetch = (url, options = {}) => fetch(url, {
+  ...options,
+  headers: { ...options.headers, Connection: 'close' }
+});
 
 const waitForServer = async (url, maxAttempts = 30) => {
   for (let i = 0; i < maxAttempts; i++) {
@@ -93,6 +96,34 @@ const runTests = async () => {
 
     const defaultCountry = await contractFetch('http://127.0.0.1:3000/v2/apps/com.google.android.apps.translate');
     if (defaultCountry.status !== 200) throw new Error(`default country/lang request returned ${defaultCountry.status}`);
+
+    // GraphQL (/v2/graphql) contract checks
+    const gqlResponse = await contractFetch('http://127.0.0.1:3000/v2/graphql', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', accept: 'application/json' },
+      body: JSON.stringify({ query: '{ categories }' })
+    });
+    if (gqlResponse.status !== 200) throw new Error(`GraphQL endpoint returned ${gqlResponse.status}`);
+    const gqlBody = await gqlResponse.json();
+    if (gqlBody.errors) throw new Error(`GraphQL categories query errored: ${gqlBody.errors[0].message}`);
+    if (!Array.isArray(gqlBody.data?.categories) || gqlBody.data.categories.length === 0) {
+      throw new Error('GraphQL categories query returned no data');
+    }
+
+    const gqlIde = await contractFetch('http://127.0.0.1:3000/v2/graphql', {
+      headers: { accept: 'text/html' }
+    });
+    const ideHtml = await gqlIde.text();
+    if (gqlIde.status !== 200 || !ideHtml.includes('GraphiQL')) {
+      throw new Error(`GraphiQL IDE page must be served to browsers, got ${gqlIde.status}`);
+    }
+
+    const gqlDepth = await contractFetch('http://127.0.0.1:3000/v2/graphql', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', accept: 'application/json' },
+      body: JSON.stringify({ query: '{ app(appId: "x") { f1 { f2 { f3 { f4 { f5 { f6 { f7 { f8 { f9 { f10 { f11 { appId } } } } } } } } } } } } }' })
+    });
+    if (gqlDepth.status !== 400) throw new Error(`over-deep GraphQL query must return 400, got ${gqlDepth.status}`);
 
     console.log('\nAPI tests completed successfully!');
   } catch (err) {
