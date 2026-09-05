@@ -1,0 +1,65 @@
+meta {
+  name: GraphQL - App Details
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{HOST}}/v2/graphql
+  body: graphql
+  auth: none
+}
+
+headers {
+  accept: application/json
+}
+
+body:graphql {
+  query AppDetails($id: ID!) {
+    app(appId: $id, country: "US", lang: "en") {
+      appId
+      title
+      url
+      developer {
+        devId
+      }
+      score
+      installs
+    }
+  }
+}
+
+body:graphql:vars {
+  {
+    "id": "{{APP_ID}}"
+  }
+}
+
+tests {
+  const responseData = res.getBody();
+
+  test("Status code is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("No GraphQL errors", function() {
+    expect(responseData.errors).to.be.undefined;
+  });
+
+  test("app echoes the requested appId", function() {
+    expect(responseData.data.app.appId).to.equal(bru.getEnvVar("APP_ID"));
+  });
+
+  test("title is a non-empty string", function() {
+    expect(responseData.data.app.title).to.be.a("string").and.to.have.lengthOf.at.least(1);
+  });
+
+  test("installs is a string like \"1,000,000+\"", function() {
+    expect(responseData.data.app.installs).to.be.a("string");
+  });
+
+  test("url is an absolute v2 REST deep link", function() {
+    expect(responseData.data.app.url).to.satisfy(u => u.startsWith("http://") || u.startsWith("https://"));
+    expect(responseData.data.app.url).to.include("/v2/apps/");
+  });
+}

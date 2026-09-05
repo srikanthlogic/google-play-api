@@ -1,0 +1,59 @@
+meta {
+  name: GraphQL - Availability
+  type: http
+  seq: 12
+}
+
+post {
+  url: {{HOST}}/v2/graphql
+  body: graphql
+  auth: none
+}
+
+headers {
+  accept: application/json
+}
+
+body:graphql {
+  query Availability($id: ID!) {
+    availability(appId: $id, countries: ["US", "IN"]) {
+      appId
+      countries {
+        countryCode
+        available
+        status
+      }
+    }
+  }
+}
+
+body:graphql:vars {
+  {
+    "id": "{{APP_ID}}"
+  }
+}
+
+tests {
+  const responseData = res.getBody();
+
+  test("Status code is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("No GraphQL errors", function() {
+    expect(responseData.errors).to.be.undefined;
+  });
+
+  test("one entry per requested country", function() {
+    expect(responseData.data.availability.countries).to.be.an("array").with.lengthOf(2);
+    const codes = responseData.data.availability.countries.map(c => c.countryCode).sort();
+    expect(codes).to.eql(["IN", "US"]);
+  });
+
+  test("status is one of the scraper states", function() {
+    responseData.data.availability.countries.forEach(function(entry) {
+      expect(entry.status).to.be.oneOf(["available", "unavailable", "error"]);
+      expect(entry.available).to.be.a("boolean");
+    });
+  });
+}

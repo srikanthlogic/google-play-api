@@ -91,6 +91,9 @@ On the `/v2` base path (`req.baseUrl === '/v2'`), responses are validated agains
 │   ├── iterators.js       # Cursor-paginated search/developer iteration (nextToken)
 │   ├── history.js         # App listing snapshots + field-level change detection (.data/)
 │   ├── exportStream.js    # Streaming reviews export (NDJSON/CSV)
+│   ├── gplayClient.js     # Resilience-wrapped gplay proxy (cache/retry/timeout/breaker); shared by REST + GraphQL
+│   ├── reviewUtils.js     # Review privacy post-processing (userdata/replies rules)
+│   ├── graphql/           # GraphQL surface: schema.js (SDL+resolvers), errors.js, depthLimit.js, ide.js, index.js (endpoint)
 │   ├── cache.js           # Response caching
 │   ├── retry.js           # Upstream retry with backoff
 │   ├── breaker.js         # Circuit breaker around upstream calls
@@ -124,7 +127,8 @@ On the `/v2` base path (`req.baseUrl === '/v2'`), responses are validated agains
 | `@mradex77/google-play-scraper` | Core scraping library (replaces abandoned `google-play-scraper`) |
 | `express` | Web framework |
 | `zod` | Response schemas (runtime validation on /v2) + OpenAPI 3.1 generation |
-| `express-rate-limit` | Rate limiting (scoped to `/api/` routes) |
+| `graphql` + `graphql-http` + `@graphql-tools/schema` | GraphQL endpoint at `/v2/graphql` (schema, spec-compliant HTTP handler, SDL assembly) |
+| `express-rate-limit` | Rate limiting (scoped to `/api/` routes and `POST /v2/graphql`) |
 | `express-validator` | Request validation |
 | `pino` | Structured logging |
 | `swagger-ui-express` | API docs at `/api-docs` |
@@ -142,7 +146,7 @@ On the `/v2` base path (`req.baseUrl === '/v2'`), responses are validated agains
 - List pagination capped at `MAX_LIST_RESULTS` (200) — scraper has no `start` offset; `/api/apps/?start=` emulates via fetch-and-slice
 - Sparse projection via `?fields=` (400 on unknown field)
 - `/api/` responses carry `Deprecation: true` + `Sunset` headers (`V1_SUNSET`, default Aug 2027)
-- Rate limit defaults: 100 requests per 15-minute window (env-configurable, `/api/` only)
+- Rate limit defaults: 100 requests per 15-minute window (env-configurable, `/api/` routes and `/v2/graphql`)
 
 ## Environment Configuration
 
@@ -162,6 +166,7 @@ Copy `.env.sample` to `.env`:
 | `V1_SUNSET` | Sat, 16 Aug 2027 00:00:00 GMT | `Sunset` header on /api/ responses |
 | `UPSTREAM_TIMEOUT_MS` | 15000 | Per-call timeout budget for scraper calls |
 | `UPSTREAM_TIMEOUT_RETRY_AFTER` | 5 | Seconds advertised in `Retry-After` on 504 |
+| `GRAPHQL_MAX_DEPTH` | 10 | Max nested field selection depth for `/v2/graphql` queries (over-deep → HTTP 400) |
 
 ## Deployment (Fly.io)
 
@@ -221,5 +226,6 @@ After every `v2dev` deploy, verify against `https://gplayapiv2.fly.dev`:
 - Newer endpoints (shared router, served under both base paths): `GET /suggest`, `GET /apps/search` + `GET /developers/:devId/apps` (cursor iteration), `GET /apps/:appId/reviews/export` (NDJSON/CSV stream), `GET /apps/:appId/history` + `/changes` (snapshots in `.data/`), `GET /health` (upstream report; `?probe=true` for live fetch), `POST /apps/batch`, `GET /apps/:appId/availability`.
 - Every `/api/` response carries `Deprecation: true` + `Sunset` headers (server.js); the legacy `?suggest=` form additionally sends a `Link` alternate pointing at `GET /suggest` (RFC 9745).
 - Unknown query params: ignored on `/api/`, 400 problem+json on `/v2/` (H4 whitelist).
-- Upstream calls go through retry + circuit breaker (`lib/resilience.js`); exhaustion surfaces as 504 + `Retry-After`.
+- Upstream calls go through retry + circuit breaker (`lib/gplayClient.js` wrapping `lib/resilience.js`); exhaustion surfaces as 504 + `Retry-After`.
+- `POST /v2/graphql` (browsers GET the GraphiQL IDE there) exposes the v2 read surface as GraphQL. Resolvers reuse the same `gplay` proxy + zod validators as REST; errors carry `extensions.{httpStatus, code, type}` mirroring the problem taxonomy; depth-limited via `GRAPHQL_MAX_DEPTH`. Mounted in `server.js` **before** the shared router — never add it to `lib/index.js` or `npm run generateoas` fails CI on the metadata-less route.
 - Verified live on `gplayapiv2.fly.dev` (see `OPS-AGENT-PLAN.md` for the verification schedule).

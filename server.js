@@ -2,6 +2,7 @@
 
 import Express from 'express';
 import router from './lib/index.js';
+import graphqlEndpoint from './lib/graphql/index.js';
 import swaggerUi from 'swagger-ui-express';
 import fs from 'fs';
 import morgan from 'morgan';
@@ -17,7 +18,8 @@ app.set('trust proxy', 1);
 
 const corsOptions = {
   origin: '*',
-  methods: ['GET', 'HEAD', 'OPTIONS'],
+  // POST is required for GraphQL documents sent as JSON bodies (/v2/graphql).
+  methods: ['GET', 'HEAD', 'POST', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
   optionsSuccessStatus: 204
 };
@@ -50,6 +52,8 @@ const limiter = rateLimit({
 });
 if (!rateLimitDisabled) {
   app.use('/api/', limiter);
+  // GraphQL is a single unauthenticated proxy to upstream — same limit as v1.
+  app.use('/v2/graphql', limiter);
 }
 
 app.use((req, res, next) => {
@@ -88,6 +92,10 @@ app.use('/api/', (req, res, next) => {
   res.set('Sunset', v1Sunset);
   next();
 });
+// GraphQL (v2): mounted before the shared router so it never enters
+// lib/index.js — the OAS generator fails CI on router routes without
+// metadata, and the /api/ deprecation headers must not apply here.
+app.all('/v2/graphql', graphqlEndpoint);
 app.use('/api/', router);
 app.use('/v2/', router);
 

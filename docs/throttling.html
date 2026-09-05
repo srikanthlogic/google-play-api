@@ -13,6 +13,7 @@
     <nav>
       <a href="/docs/">Home</a>
       <a href="/docs/endpoints.html">Endpoints</a>
+      <a href="/docs/graphql.html">GraphQL</a>
       <a href="/docs/errors.html">Errors</a>
       <a href="/docs/throttling.html">Throttling</a>
       <a href="/docs/localization.html">Localization</a>
@@ -25,7 +26,8 @@
     <h1>Throttling &amp; Rate Limits</h1>
     <p class="lead">
       Rate limiting uses <code>express-rate-limit</code>, scoped to
-      <code>/api/</code> and <code>/v2/</code> routes. All settings are
+      <code>/api/</code> routes and <code>POST /v2/graphql</code>; the other
+      <code>/v2/</code> REST routes are not rate limited. All settings are
       environment-configurable; there is no hardcoded limit.
     </p>
 

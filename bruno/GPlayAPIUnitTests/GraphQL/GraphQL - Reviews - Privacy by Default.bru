@@ -1,0 +1,65 @@
+meta {
+  name: GraphQL - Reviews - Privacy by Default
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{HOST}}/v2/graphql
+  body: graphql
+  auth: none
+}
+
+headers {
+  accept: application/json
+}
+
+body:graphql {
+  query Reviews($id: ID!) {
+    reviews(appId: $id, num: 3, country: "US", lang: "en") {
+      data {
+        id
+        userName
+        date
+        score
+        text
+        thumbsUp
+      }
+      nextCursor
+    }
+  }
+}
+
+body:graphql:vars {
+  {
+    "id": "{{APP_ID}}"
+  }
+}
+
+tests {
+  const responseData = res.getBody();
+
+  test("Status code is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("No GraphQL errors", function() {
+    expect(responseData.errors).to.be.undefined;
+  });
+
+  test("at most num reviews are returned", function() {
+    expect(responseData.data.reviews.data).to.be.an("array").with.lengthOf.at.most(3);
+  });
+
+  test("date is trimmed to YYYY-MM-DD", function() {
+    responseData.data.reviews.data.forEach(function(review) {
+      expect(review.date).to.match(/^\d{4}-\d{2}-\d{2}$/);
+    });
+  });
+
+  test("reviewer identity is stripped by default", function() {
+    responseData.data.reviews.data.forEach(function(review) {
+      expect(review.userName).to.satisfy(v => v === null || v === undefined);
+    });
+  });
+}
