@@ -1,0 +1,62 @@
+meta {
+  name: GraphQL - Batch Apps - Over Cap
+  type: http
+  seq: 17
+}
+
+post {
+  url: {{HOST}}/v2/graphql
+  body: graphql
+  auth: none
+}
+
+headers {
+  accept: application/json
+}
+
+body:graphql {
+  {
+    apps(ids: [
+      "com.example.app0", "com.example.app1", "com.example.app2", "com.example.app3", "com.example.app4",
+      "com.example.app5", "com.example.app6", "com.example.app7", "com.example.app8", "com.example.app9",
+      "com.example.app10", "com.example.app11", "com.example.app12", "com.example.app13", "com.example.app14",
+      "com.example.app15", "com.example.app16", "com.example.app17", "com.example.app18", "com.example.app19",
+      "com.example.app20"
+    ]) {
+      __typename
+      ... on AppOk {
+        appId
+      }
+      ... on AppError {
+        appId
+        error
+      }
+    }
+  }
+}
+
+vars:pre-request {
+  expectedResponseStatusCode: 200
+}
+
+tests {
+  const responseData = res.getBody();
+
+  test("Status code is 200 (field error, not HTTP 4xx)", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("A field error states the 20-app cap", function() {
+    expect(responseData.errors).to.be.an("array").with.lengthOf.at.least(1);
+    expect(responseData.errors[0].message).to.include("at most 20");
+  });
+
+  test("extensions carries the REST validation code", function() {
+    expect(responseData.errors[0].extensions.httpStatus).to.equal(400);
+    expect(responseData.errors[0].extensions.code).to.equal("VALIDATION_ERROR");
+  });
+
+  test("No data is returned for the failed field", function() {
+    expect(responseData.data).to.be.null;
+  });
+}

@@ -128,7 +128,7 @@ On the `/v2` base path (`req.baseUrl === '/v2'`), responses are validated agains
 | `express` | Web framework |
 | `zod` | Response schemas (runtime validation on /v2) + OpenAPI 3.1 generation |
 | `graphql` + `graphql-http` + `@graphql-tools/schema` | GraphQL endpoint at `/v2/graphql` (schema, spec-compliant HTTP handler, SDL assembly) |
-| `express-rate-limit` | Rate limiting (scoped to `/api/` routes) |
+| `express-rate-limit` | Rate limiting (scoped to `/api/` routes and `POST /v2/graphql`) |
 | `express-validator` | Request validation |
 | `pino` | Structured logging |
 | `swagger-ui-express` | API docs at `/api-docs` |
@@ -146,7 +146,7 @@ On the `/v2` base path (`req.baseUrl === '/v2'`), responses are validated agains
 - List pagination capped at `MAX_LIST_RESULTS` (200) — scraper has no `start` offset; `/api/apps/?start=` emulates via fetch-and-slice
 - Sparse projection via `?fields=` (400 on unknown field)
 - `/api/` responses carry `Deprecation: true` + `Sunset` headers (`V1_SUNSET`, default Aug 2027)
-- Rate limit defaults: 100 requests per 15-minute window (env-configurable, `/api/` only)
+- Rate limit defaults: 100 requests per 15-minute window (env-configurable, `/api/` routes and `/v2/graphql`)
 
 ## Environment Configuration
 

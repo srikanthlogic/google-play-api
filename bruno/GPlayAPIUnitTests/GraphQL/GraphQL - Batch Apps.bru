@@ -1,0 +1,71 @@
+meta {
+  name: GraphQL - Batch Apps
+  type: http
+  seq: 16
+}
+
+post {
+  url: {{HOST}}/v2/graphql
+  body: graphql
+  auth: none
+}
+
+headers {
+  accept: application/json
+}
+
+body:graphql {
+  query BatchApps($ids: [ID!]!) {
+    apps(ids: $ids, country: "US", lang: "en", concurrency: 2) {
+      __typename
+      ... on AppOk {
+        appId
+        app {
+          appId
+          title
+          installs
+        }
+      }
+      ... on AppError {
+        appId
+        error
+      }
+    }
+  }
+}
+
+body:graphql:vars {
+  {
+    "ids": ["in.juspay.nammayatri", "com.duolingo"]
+  }
+}
+
+vars:pre-request {
+  expectedResponseStatusCode: 200
+}
+
+tests {
+  const responseData = res.getBody();
+
+  test("Status code is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("No GraphQL errors", function() {
+    expect(responseData.errors).to.be.undefined;
+  });
+
+  test("One settled entry per requested appId, in request order", function() {
+    expect(responseData.data.apps.length).to.equal(2);
+    expect(responseData.data.apps[0].appId).to.equal("in.juspay.nammayatri");
+    expect(responseData.data.apps[1].appId).to.equal("com.duolingo");
+  });
+
+  test("Known apps resolve as AppOk with app details", function() {
+    expect(responseData.data.apps[0].__typename).to.equal("AppOk");
+    expect(responseData.data.apps[0].app.appId).to.equal("in.juspay.nammayatri");
+    expect(responseData.data.apps[0].app.title).to.be.a("string");
+    expect(responseData.data.apps[1].__typename).to.equal("AppOk");
+    expect(responseData.data.apps[1].app.title).to.be.a("string");
+  });
+}

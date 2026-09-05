@@ -17,9 +17,13 @@
   - Query depth limit (default 10, `GRAPHQL_MAX_DEPTH`) rejects over-deep
     documents with HTTP 400 before execution
   - Rate limited with the same limiter as `/api/`; CORS allows POST
-- Docs microsite page `docs/graphql.html` (nav link on every page)
-- Bruno `GraphQL` folder in the unit collection (categories, app details,
-  depth limit, error contract, GraphiQL page)
+- Docs microsite page `docs/graphql.html` (nav link on every page) plus
+  GraphQL sections on the errors and throttling pages and a README section
+- Bruno `GraphQL` folder in the unit collection covering every GraphQL
+  query (app, batch-adjacent lists, search, list, similar, reviews privacy,
+  developer, developer apps cursor page, suggest, data safety, permissions,
+  availability, categories) plus depth limit, error contract and the
+  GraphiQL page
 - `test/graphql.test.js`: 29 node:test cases over the endpoint (schema shape,
   pagination, privacy rules, error taxonomy, depth limit, IDE)
 

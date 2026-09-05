@@ -83,6 +83,32 @@ Content-Type: application/problem+json
       <code>/v2/apps/:appId/reviews/export</code> endpoint (NDJSON/CSV).
     </p>
 
+    <h2>Over GraphQL</h2>
+    <p>
+      The <a href="/docs/graphql.html">GraphQL endpoint</a> maps resolver
+      failures onto the same catalog: the HTTP response stays <code>200</code>
+      with an <code>errors</code> array, and each entry carries the REST
+      status, machine code and problem type in <code>extensions</code>
+      (<code>retryAfter</code> appears for 429 and 504, matching the REST
+      <code>Retry-After</code> header):
+    </p>
+<pre><code>{
+  "errors": [{
+    "message": "App not found (404)",
+    "path": ["app"],
+    "extensions": {
+      "httpStatus": 404,
+      "code": "HTTP_404",
+      "type": "https://api.google-play-api.dev/problems/not-found"
+    }
+  }]
+}</code></pre>
+    <p>
+      Request-level problems — malformed documents and queries beyond
+      <code>GRAPHQL_MAX_DEPTH</code> — are rejected with a real HTTP
+      <code>400</code> before execution.
+    </p>
+
     <h2>Legacy v1 shape</h2>
 <pre><code>HTTP/1.1 400 Bad Request
 Deprecation: true
