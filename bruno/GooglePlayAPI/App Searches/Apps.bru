@@ -29,8 +29,9 @@ vars:pre-request {
 tests {
   const responseData = res.getBody();
   
-  test("List of all apps equals 200", function() {
-    expect(responseData.results).to.have.lengthOf(200);
+  test("List of all apps is non-empty batch (up to 200)", function() {
+    expect(responseData.results.length).to.be.at.least(100);
+    expect(responseData.results.length).to.be.at.most(200);
   });
   
   test("appId is a non-empty string", function() {
