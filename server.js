@@ -10,6 +10,7 @@ import rateLimit from 'express-rate-limit';
 import logger from './lib/logger.js';
 
 const app = Express();
+app.set('trust proxy', 1);
 const port = process.env.PORT || 3000;
 
 const corsOptions = {
