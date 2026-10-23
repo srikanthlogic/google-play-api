@@ -36,6 +36,7 @@ const windowMs = getEnvInt('RATE_LIMIT_WINDOW_MS', 900000);
 const maxRequests = getEnvInt('RATE_LIMIT_MAX_REQUESTS', 100);
 const skipSuccessfulRequests = getEnvBool('RATE_LIMIT_SKIP_SUCCESSFUL_REQUESTS', false);
 const skipFailedRequests = getEnvBool('RATE_LIMIT_SKIP_FAILED_REQUESTS', false);
+const rateLimitDisabled = getEnvBool('RATE_LIMIT_DISABLED', false);
 
 const limiter = rateLimit({
   windowMs,
@@ -81,7 +82,10 @@ const options = {
 app.use('/openapi.json', Express.static('openapi/swagger.json'));
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument, options));
-app.use('/api/', limiter, router);
+if (!rateLimitDisabled) {
+  app.use('/api/', limiter);
+}
+app.use('/api/', router);
 
 app.get('/', function (req, res) {
   res.redirect('/api-docs');
